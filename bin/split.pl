@@ -1,8 +1,3 @@
-use Dir::Split;
-
-use strict;
-use warnings;
-
 #
 # Uncomment the lines at the bottom accordingly
 # whether numeric or characteristic splitting shall be
@@ -10,6 +5,14 @@ use warnings;
 #
 # Source & target dir vars might require some adjustment.
 #
+
+
+use Dir::Split;
+
+use strict;
+use warnings;
+
+my $return = -255;
 
 
 my %num_options = (  mode    =>    'num',
@@ -35,7 +38,8 @@ my %char_options = (  mode    =>    'char',
                       sub_dir => {  identifier  =>       'sub',
                       },
                       suffix  => {  separator   =>         '-',
-                                    case        =>     'lower',
+                                    case        =>     'upper',
+                                    length      =>           1,
                       },
 
 );
@@ -54,7 +58,7 @@ $dir->{'target'} = '/target';
 
 # split, evaluate the return status and squeek accordingly.
 #
-my $return = $dir->split;
+#$return = $dir->split;
 
 # action
 if ($return == 1) {
@@ -117,7 +121,7 @@ Target - files: $Dir::Split::track{'target'}{'files'}
 Target - dirs : $Dir::Split::track{'target'}{'dirs'}
 -------------------
 EOT
-} # no return code
+} # no config
 else {
-    print "Program abortion - no return code.\n";
+    print "split.pl requires some adjustment.\n";
 }
