@@ -11,7 +11,7 @@ use File::Temp;
 
 our ($obj, $PACKAGE, $tmp_dir);
 
-$obj = Dir::Split->new;
+$obj = Dir::Split->new ({});
 $tmp_dir = File::Temp::tmpnam();
 
 # tests

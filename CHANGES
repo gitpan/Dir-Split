@@ -1,5 +1,9 @@
 Revision history for Perl extension Dir::Split.
 
+0.2 2003/12/30
+ - further sub "inventions".
+ - inefficiency clean-up.
+
 0.1 2003/12/29
  - source files are sorted case-insensitive.
  - documentation expanded.
