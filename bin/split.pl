@@ -1,17 +1,19 @@
 #!/usr/bin/perl
 
 #
-# Uncomment the lines below accordingly whether 
-# numeric or characteristic splitting shall be
+# Uncomment the lines at the bottom accordingly
+# whether numeric or characteristic splitting shall be
 # committed.
 #
 
-use strict;
+use strict 'vars';
 use warnings;
 
-use Dir::Split q/split_dir/;
+$SIG{__WARN__} = sub { return '' };
 
-my ($return, %num_options, %char_options);
+use Dir::Split q(split_dir);
+
+our ($return, %num_options, %char_options, %form, %form_o);
 
 $return = -255;
 
@@ -67,69 +69,46 @@ $return = -255;
 #$return = split_dir(\%char_options);
 
 # action
-if ($return == 1) {
-    print <<"EOT";
-
--------------------
-Source - files: $Dir::Split::track{source}{files}
-Target - files: $Dir::Split::track{target}{files}
-Target - dirs : $Dir::Split::track{target}{dirs}
--------------------
-EOT
-}
+if ($return == 1) { formwrite('track') }
 # no action
 elsif ($return == 0) { print "None moved.\n" }
 # existing files
 elsif ($return == -1) {
-    print <<'EOT';
----------------------
-START: DEBUG - EXISTS
----------------------
-EOT
+    local %form_o;
+
+    $form_o{header} = 'EXISTS';
+    $form_o{ul} = '-' x length $form_o{header};
+     
+    formwrite('start_debug');
 
     foreach (@Dir::Split::exists) {
         print "file:\t$_\n";
     }
     
-    print <<"EOT";
--------------------
-END: DEBUG - EXISTS
--------------------
-
--------------------
-Source - files: $Dir::Split::track{source}{files}
-Target - files: $Dir::Split::track{target}{files}
-Target - dirs : $Dir::Split::track{target}{dirs}
--------------------
-EOT
+    formwrite('end_debug'); 
+    formwrite('track');
 }
 # copy or unlink failure
 elsif ($return == -2) {
+    local %form_o;
+
     if (@Dir::Split::exists) {
-    
-        print <<'EOT';
----------------------
-START: DEBUG - EXISTS
----------------------
-EOT
+        $form_o{header} = 'EXISTS';
+        $form_o{ul} = '-' x length $form_o{header};
+	
+        formwrite('start_debug');
 
         foreach (@Dir::Split::exists) {
             print "file:\t$_\n";
         }
 	
-        print <<'EOT';
--------------------
-END: DEBUG - EXISTS
--------------------
-EOT
+	formwrite('end_debug');
     }
     
-    print <<'EOT';
-----------------------
-START: DEBUG - FAILURE
-----------------------
-EOT
-
+    $form_o{header} = 'FAILURE';
+    $form_o{ul} = '-' x length $form_o{header};
+    formwrite('start_debug');
+    
     foreach (@{$Dir::Split::failure{copy}}) {
         print "copy failed:\t$_\n";
     }
@@ -137,18 +116,52 @@ EOT
         print "unlink failed:\t$_\n";
     }
     
-    print <<"EOT";
---------------------
-END: DEBUG - FAILURE
---------------------
-
--------------------
-Source - files: $Dir::Split::track{source}{files}
-Target - files: $Dir::Split::track{target}{files}
-Target - dirs : $Dir::Split::track{target}{dirs}
--------------------
-EOT
-} # no config
+    formwrite('end_debug');
+    formwrite('track');
+}
+# no config
 else {
     print __FILE__." requires adjustment.\n";
+}
+
+sub formwrite {
+    my $ident = shift;
+    
+    eval $form{$ident};
+    if ($@) { require Carp; Carp::croak $@; }
+    write;
+}
+
+BEGIN {
+    $form{track} = 'format = 
+-------------------
+Source - files: @<<<
+sprintf "%3d", $Dir::Split::track{source}{files}
+Target - files: @<<<
+sprintf "%3d", $Dir::Split::track{target}{files}
+Target - dirs : @<<<
+sprintf "%3d", $Dir::Split::track{target}{dirs}
+-------------------
+.
+    ';
+
+    $form{start_debug} = 'format =
+---------------@<<<<<<<<<<
+$form_o{ul}
+START: DEBUG - @<<<<<<<<<<
+$form_o{header}
+---------------@<<<<<<<<<<
+$form_o{ul} 
+.
+    ';
+    
+    $form{end_debug} = 'format =
+---------------@<<<<<<<<<<
+$form_o{ul}
+END  : DEBUG - @<<<<<<<<<<
+$form_o{header}
+---------------@<<<<<<<<<<
+$form_o{ul} 
+.
+    ';    
 }

@@ -1,5 +1,8 @@
 Revision history for Perl extension Dir::Split.
 
+0.60 2004/01/17
+ - minor changes.
+
 0.58 2004/01/16
  - object constructor removed;
    functions are exportable.

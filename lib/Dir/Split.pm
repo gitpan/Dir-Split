@@ -1,15 +1,15 @@
-# $Id: Split.pm,v 0.59 2004/01/16 10:12:29 sts Exp $
+# $Id: Split.pm,v 0.60 2004/01/17 17:56:26 sts Exp $
 
 package Dir::Split;
 
 use 5.006;
-use base (Exporter);
+use base(Exporter);
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.59';
+our $VERSION = '0.60';
 
-our @EXPORT_OK = qw(split_dir);
+our @EXPORT_OK = q(split_dir);
 
 use File::Basename;
 use File::Copy 'cp';
@@ -48,121 +48,6 @@ sub croak {
     require Carp;
     &Carp::croak;
 }
-
-=head1 NAME
-
-Dir::Split - split files of a directory to subdirectories.
-
-=head1 SYNOPSIS
-
- use Dir::Split q/split_dir/;
-
- %options = (  mode    =>    'num',
-
-               source  =>    '/source',
-               target  =>    '/target',
-
-               options => {  verbose      =>         1,
-                             override     =>         0,
-               },
-               sub_dir => {  identifier   =>     'sub',
-                             file_limit   =>         2,
-                             file_sort    =>       '+',
-               },
-               suffix  => {  separator    =>       '-',
-                             continue     =>         1,
-                             length       =>         5,
-               },
- );
-
- $return = split_dir(\%options);
-
-=head1 DESCRIPTION
-
-C<Dir::Split> moves files to either numbered or characteristic subdirectories.
-
-=head2 numeric splitting
-
-Numeric splitting is an attempt to gather files from a source directory and
-split them to numbered subdirectories within a target directory. Its purpose is
-to automate the archiving of a great amount of files, that are likely to be indexed
-by numbers.
-
-=head2 characteristic splitting
-
-Characteristic splitting allows indexing by using leading characters of filenames.
-While numeric splitting is being characterised by dividing file amounts, characteristic
-splitting tries to keep up the contentual recognition of data.
-
-=cut
-
-=head1 FUNCTIONS
-
-=head2 split_dir
-
-Split files to subdirectories.
-
-The key / value pairs may be supplied as
-hash reference or directly dumped to the function.
-
- $return = split_dir(\%options);
- 
- or
- 
- $return = split_dir(
-      mode    =>    'num',
-
-      source  =>    '/source',
-      target  =>    '/target',
-
-      options => {  verbose      =>         1,
-                    override     =>         0,
-      },
-      sub_dir => {  identifier   =>     'sub',
-                    file_limit   =>         2,
-                    file_sort    =>       '+',
-      },
-      suffix  => {  separator    =>       '-',
-                    continue     =>         1,
-                    length       =>         5,
-      },
- );
- 
- 
-
-It is of tremendous importance to notice that checking the return code is a B<must>.
-Leaving the return code untouched will not allow appropriate gathering of harmless
-debug data (such as existing files) and system operations that failed. C<split_dir()>
-does only report verbose output of mkpath to STDOUT. See B<OPTIONS / debug> on how to
-become aware of existing files and failed system operations (I<copy> & I<unlink>).
-
-B<RETURN CODES>
-
-=over 4
-
-=item (1)
-
-Files moved successfully.
-
-=item (0)
-
-No action.
-
-=item (-1)
-
-Exists.
-
-I<(see OPTIONS / debug / existing)>
-
-=item (-2)
-
-Failure.
-
-I<(see OPTIONS / debug / failures)>
-
-=back
-
-=cut
 
 sub split_dir {
     local %o = _tie_var(@_);
@@ -502,6 +387,121 @@ sub _traversed_rmdir {
 
 __END__
 
+=head1 NAME
+
+Dir::Split - split files of a directory to subdirectories.
+
+=head1 SYNOPSIS
+
+ use Dir::Split q(split_dir);
+
+ %options = (  mode    =>    'num',
+
+               source  =>    '/source',
+               target  =>    '/target',
+
+               options => {  verbose      =>         1,
+                             override     =>         0,
+               },
+               sub_dir => {  identifier   =>     'sub',
+                             file_limit   =>         2,
+                             file_sort    =>       '+',
+               },
+               suffix  => {  separator    =>       '-',
+                             continue     =>         1,
+                             length       =>         5,
+               },
+ );
+
+ $return = split_dir(\%options);
+
+=head1 DESCRIPTION
+
+C<Dir::Split> moves files to either numbered or characteristic subdirectories.
+
+=head2 numeric splitting
+
+Numeric splitting is an attempt to gather files from a source directory and
+split them to numbered subdirectories within a target directory. Its purpose is
+to automate the archiving of a great amount of files, that are likely to be indexed
+by numbers.
+
+=head2 characteristic splitting
+
+Characteristic splitting allows indexing by using leading characters of filenames.
+While numeric splitting is being characterised by dividing file amounts, characteristic
+splitting tries to keep up the contentual recognition of data.
+
+=cut
+
+=head1 FUNCTIONS
+
+=head2 split_dir
+
+Split files to subdirectories.
+
+The key / value pairs may be supplied as
+hash reference or directly dumped to the function.
+
+ $return = split_dir(\%options);
+ 
+ or
+ 
+ $return = split_dir(
+      mode    =>    'num',
+
+      source  =>    '/source',
+      target  =>    '/target',
+
+      options => {  verbose      =>         1,
+                    override     =>         0,
+      },
+      sub_dir => {  identifier   =>     'sub',
+                    file_limit   =>         2,
+                    file_sort    =>       '+',
+      },
+      suffix  => {  separator    =>       '-',
+                    continue     =>         1,
+                    length       =>         5,
+      },
+ );
+ 
+ 
+
+It is of tremendous importance to notice that checking the return code is a B<must>.
+Leaving the return code untouched will not allow appropriate gathering of harmless
+debug data (such as existing files) and system operations that failed. C<split_dir()>
+does only report verbose output of mkpath to STDOUT. See B<OPTIONS / debug> on how to
+become aware of existing files and failed system operations (I<copy> & I<unlink>).
+
+B<RETURN CODES>
+
+=over 4
+
+=item (1)
+
+Files moved successfully.
+
+=item (0)
+
+No action.
+
+=item (-1)
+
+Exists.
+
+I<(see OPTIONS / debug / existing)>
+
+=item (-2)
+
+Failure.
+
+I<(see OPTIONS / debug / failures)>
+
+=back
+
+=cut
+
 =head1 OPTIONS
 
 =head2 numeric
@@ -704,7 +704,7 @@ Each time a new splitting is attempted, the track will be reseted.
                          },
  );
 
-Above example: directory consisting 512 files successfully splitted to 128 directories.
+Above example: directory consisting of 512 files successfully splitted to 128 directories.
 
 =head2 debug
 
