@@ -56,15 +56,15 @@ $return = -255;
 
 # source and target dir
 #
-#$dir->{'source'} = '/source';
-#$dir->{'target'} = '/target';
+#$dir->{source} = '/source';
+#$dir->{target} = '/target';
 
 # traversal mode and options.
 #
-#$Dir::Split::traverse        = 1;
-#$Dir::Split::traverse_depth  = 2;
-#$Dir::Split::traverse_unlink = 0;
-#$Dir::Split::traverse_rmdir  = 0;
+#$Dir::Split::Traverse        = 1;
+#$Dir::Split::Traverse_depth  = 2;
+#$Dir::Split::Traverse_unlink = 0;
+#$Dir::Split::Traverse_rmdir  = 0;
 
 # split and evaluate the return status.
 #
@@ -75,9 +75,9 @@ if ($return == 1) {
     print <<"EOT";
 
 -------------------
-Source - files: $Dir::Split::track{'source'}{'files'}
-Target - files: $Dir::Split::track{'target'}{'files'}
-Target - dirs : $Dir::Split::track{'target'}{'dirs'}
+Source - files: $Dir::Split::track{source}{files}
+Target - files: $Dir::Split::track{target}{files}
+Target - dirs : $Dir::Split::track{target}{dirs}
 -------------------
 EOT
 }
@@ -101,9 +101,9 @@ END: DEBUG - EXISTS
 -------------------
 
 -------------------
-Source - files: $Dir::Split::track{'source'}{'files'}
-Target - files: $Dir::Split::track{'target'}{'files'}
-Target - dirs : $Dir::Split::track{'target'}{'dirs'}
+Source - files: $Dir::Split::track{source}{files}
+Target - files: $Dir::Split::track{target}{files}
+Target - dirs : $Dir::Split::track{target}{dirs}
 -------------------
 EOT
 }
@@ -134,10 +134,10 @@ START: DEBUG - FAILURE
 ----------------------
 EOT
 
-    foreach (@{$Dir::Split::failure{'copy'}}) {
+    foreach (@{$Dir::Split::failure{copy}}) {
         print "copy failed:\t$_\n";
     }
-    foreach (@{$Dir::Split::failure{'unlink'}}) {
+    foreach (@{$Dir::Split::failure{unlink}}) {
         print "unlink failed:\t$_\n";
     }
     
@@ -147,9 +147,9 @@ END: DEBUG - FAILURE
 --------------------
 
 -------------------
-Source - files: $Dir::Split::track{'source'}{'files'}
-Target - files: $Dir::Split::track{'target'}{'files'}
-Target - dirs : $Dir::Split::track{'target'}{'dirs'}
+Source - files: $Dir::Split::track{source}{files}
+Target - files: $Dir::Split::track{target}{files}
+Target - dirs : $Dir::Split::track{target}{dirs}
 -------------------
 EOT
 } # no config

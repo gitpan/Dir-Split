@@ -1,9 +1,9 @@
 #
-# $Id: Split.pm,v 0.52 2004/01/10 19:31:45 sts Exp $
+# $Id: Split.pm,v 0.53 2004/01/13 16:48:12 sts Exp $
 
 package Dir::Split;
 
-our $VERSION = '0.52';
+our $VERSION = '0.53';
 
 use 5.6.1;
 use strict 'vars';
@@ -20,10 +20,10 @@ our (# external data
         %failure,
         %track,
 
-        $traverse,
-        $traverse_depth,
-        $traverse_unlink,
-        $traverse_rmdir,
+        $Traverse,
+        $Traverse_depth,
+        $Traverse_unlink,
+        $Traverse_rmdir,
 
      # return
         $Ret_status,
@@ -245,10 +245,10 @@ sub split {
         $Ret_status = ACTION;
 
         # engine
-        $o->_sort_files() if $o->{'mode'} eq 'num';
+        $o->_sort_files() if $o->{mode} eq 'num';
         $o->_suffix();
         $o->_move();
-        $o->_traversed_rm_dir() if $traverse;
+        $o->_traversed_rm_dir() if $Traverse;
 
         $Ret_status = FAILURE if %failure;
     }
@@ -287,46 +287,46 @@ sub _sanity_input {
     {   no warnings;
 
         # generic opts
-        unless ($o->{'mode'} eq 'num' || $o->{'mode'} eq 'char') {
-            $err_input = $err_msg{'mode'}; last;
+        unless ($o->{mode} eq 'num' || $o->{mode} eq 'char') {
+            $err_input = $err_msg{mode}; last;
         }
-        unless ($o->{'source'}) {
-            $err_input = $err_msg{'source'}; last;
+        unless ($o->{source}) {
+            $err_input = $err_msg{source}; last;
         }
-        unless ($o->{'target'}) {
-            $err_input = $err_msg{'target'}; last;
+        unless ($o->{target}) {
+            $err_input = $err_msg{target}; last;
         }
-        unless ($o->{'verbose'} =~ /^0|1$/) {
-            $err_input = $err_msg{'verbose'}; last;
+        unless ($o->{verbose} =~ /^0|1$/) {
+            $err_input = $err_msg{verbose}; last;
         }
-        unless ($o->{'override'} =~ /^0|1$/) {
-            $err_input = $err_msg{'override'}; last;
+        unless ($o->{override} =~ /^0|1$/) {
+            $err_input = $err_msg{override}; last;
         }
-        unless ($o->{'ident'} =~ /\w/) {
-            $err_input = $err_msg{'ident'}; last;
+        unless ($o->{ident} =~ /\w/) {
+            $err_input = $err_msg{ident}; last;
         }
-        unless ($o->{'sep'}) {
-            $err_input = $err_msg{'sep'}; last;
+        unless ($o->{sep}) {
+            $err_input = $err_msg{sep}; last;
         }
-        unless ($o->{'length'} > 0) {
-            $err_input = $err_msg{'length'}; last;
+        unless ($o->{length} > 0) {
+            $err_input = $err_msg{length}; last;
         }
         # numeric opts
-        if ($o->{'mode'} eq 'num') {
-            unless ($o->{'f_limit'} > 0) {
-                $err_input = $err_msg{'f_limit'}; last;
+        if ($o->{mode} eq 'num') {
+            unless ($o->{f_limit} > 0) {
+                $err_input = $err_msg{f_limit}; last;
             }
-            unless ($o->{'f_sort'} eq '+' || $o->{'f_sort'} eq '-') {
-                $err_input = $err_msg{'f_sort'}; last;
+            unless ($o->{f_sort} eq '+' || $o->{f_sort} eq '-') {
+                $err_input = $err_msg{f_sort}; last;
             }
-            unless ($o->{'num_contin'} =~ /^0|1$/) {
-                $err_input = $err_msg{'num_contin'}; last;
+            unless ($o->{num_contin} =~ /^0|1$/) {
+                $err_input = $err_msg{num_contin}; last;
             }
         }
         # characteristic opts
-        elsif ($o->{'mode'} eq 'char') {
-            unless ($o->{'case'} eq 'lower' || $o->{'case'} eq 'upper') {
-                $err_input = $err_msg{'case'}; last;
+        elsif ($o->{mode} eq 'char') {
+            unless ($o->{case} eq 'lower' || $o->{case} eq 'upper') {
+                $err_input = $err_msg{case}; last;
             }
         }
     }
@@ -342,15 +342,15 @@ sub _sanity_input {
 sub _gather_files {
     my $o = $_[0];
 
-    if ($traverse) {
+    if ($Traverse) {
         $o->_traverse(\@Dirs, \@Files);
     }
     else {
-        $o->_dir_read($o->{'source'}, \@Files);
-        @Files = grep !-d File::Spec->catfile($o->{'source'}, $_), @Files;
+        $o->_dir_read($o->{source}, \@Files);
+        @Files = grep !-d File::Spec->catfile($o->{source}, $_), @Files;
     }
 
-    $track{'source'}{'files'} = @Files;
+    $track{source}{files} = @Files;
 }
 
 #
@@ -362,14 +362,14 @@ sub _gather_files {
 sub _sort_files {
     my $o = $_[0];
 
-    if ($o->{'f_sort'} eq '+' || $o->{'f_sort'} eq '-') {
+    if ($o->{f_sort} eq '+' || $o->{f_sort} eq '-') {
         # preserve case-sensitive filenames.
         foreach (@Files) {
            $F_names_case{lc($_)} = $_;
         }
         @Files = map lc, @Files;
 
-        if ($o->{'f_sort'} eq '+') { @Files = sort @Files }
+        if ($o->{f_sort} eq '+') { @Files = sort @Files }
         else { @Files = reverse @Files }
     }
 }
@@ -383,8 +383,8 @@ sub _sort_files {
 sub _suffix {
     my $o = $_[0];
 
-    if ($o->{'mode'} eq 'num') {
-        $o->_suffix_num_contin() if $o->{'num_contin'};
+    if ($o->{mode} eq 'num') {
+        $o->_suffix_num_contin() if $o->{num_contin};
         $o->_suffix_num_sum_up();
     } else {
         $o->_suffix_char();
@@ -401,18 +401,18 @@ sub _suffix_num_contin {
     my $o = $_[0];
 
     my @dirs;
-    $o->_dir_read($o->{'target'}, \@dirs);
-    @dirs = grep -d File::Spec->catfile($o->{'target'}, $_), @dirs;
+    $o->_dir_read($o->{target}, \@dirs);
+    @dirs = grep -d File::Spec->catfile($o->{target}, $_), @dirs;
 
     # surpress warnings
     $Suffix = 0;
-    my $sep = quotemeta $o->{'sep'};
+    my $sep = quotemeta $o->{sep};
     foreach (@dirs) {
         # extract exist. identifier
 	my $suff_cmp;
         ($_, $suff_cmp) = /(.+?)$sep(.*)/;
         # increase suffix to highest number
-        if ($o->{'ident'} eq $_ && $suff_cmp =~ /[0-9]/o) {
+        if ($o->{ident} eq $_ && $suff_cmp =~ /[0-9]/o) {
             $Suffix = $suff_cmp if $suff_cmp > $Suffix;
         }
     }
@@ -428,8 +428,8 @@ sub _suffix_num_sum_up {
     my $o = $_[0];
 
     $Suffix++;
-    if (length $Suffix < $o->{'length'}) {
-        my $format = "%0.$o->{'length'}".'d';
+    if (length $Suffix < $o->{length}) {
+        my $format = "%0.$o->{length}".'d';
         $Suffix = sprintf $format, $Suffix;
     }
 }
@@ -446,12 +446,12 @@ sub _suffix_char {
     my $o = $_[0];
 
     foreach my $file (@Files) {
-        if ($traverse) { $_ = basename($file) }
+        if ($Traverse) { $_ = basename($file) }
         else { $_ = $file }
         s/\s//g if /\s/; # whitespaces
-        ($_) = /^(.{$o->{'length'}})/;
+        ($_) = /^(.{$o->{length}})/;
         if ($_ =~ /\w/) {
-            if ($o->{'case'} eq 'lower') { $_ = lc $_ }
+            if ($o->{case} eq 'lower') { $_ = lc $_ }
             else { $_ = uc $_ }
         }
         push @{$F_names_char{$_}}, $file;
@@ -469,8 +469,8 @@ sub _move {
     my $o = $_[0];
 
     # initalize tracking
-    $track{'target'}{'dirs'} = 0;
-    $track{'target'}{'files'} = 0;
+    $track{target}{dirs} = 0;
+    $track{target}{files} = 0;
 
     my $sub_move = "_move_$o->{'mode'}";
     $o->$sub_move();
@@ -488,7 +488,7 @@ sub _move_num {
     for (; @Files; $Suffix++) {
        $o->_mkpath($Suffix);
 
-        for (my $i = 0; $i < $o->{'f_limit'}; $i++) {
+        for (my $i = 0; $i < $o->{f_limit}; $i++) {
             last unless my $file = shift @Files;
             $o->_cp_unlink($F_names_case{$file});
         }
@@ -537,13 +537,13 @@ sub _dir_read {
 sub _mkpath {
     my ($o, $suffix) = @_;
 
-    $Path = File::Spec->catfile($o->{'target'}, "$o->{'ident'}$o->{'sep'}$suffix");
+    $Path = File::Spec->catfile($o->{target}, "$o->{ident}$o->{sep}$suffix");
 
     return if -e $Path;
-    mkpath $Path, $o->{'verbose'}
+    mkpath $Path, $o->{verbose}
       or croak qq~Dir $Path could not be created: $!~;
 
-    $track{'target'}{'dirs'}++;
+    $track{target}{dirs}++;
 }
 
 #
@@ -557,12 +557,12 @@ sub _cp_unlink {
     my ($o, $file) = @_;
 
     my $path_target;
-    if ($traverse) {
+    if ($Traverse) {
         $path_target = File::Spec->catfile($Path, basename($file));
     }
     else {
         $path_target = File::Spec->catfile($Path, $file);
-        $file = File::Spec->catfile($o->{'source'}, $file);
+        $file = File::Spec->catfile($o->{source}, $file);
     }
 
     if ($o->_exists_and_not_override($path_target)) {
@@ -571,17 +571,17 @@ sub _cp_unlink {
     }
 
     unless (cp $file, $path_target) {
-        push @{$failure{'copy'}}, $path_target;
+        push @{$failure{copy}}, $path_target;
         return;
     }
-    $track{'target'}{'files'}++;
+    $track{target}{files}++;
 
-    if ($traverse) {
-        return unless $traverse_unlink;
+    if ($Traverse) {
+        return unless $Traverse_unlink;
     }
 
     unless (unlink $file) {
-        push @{$failure{'unlink'}}, $file;
+        push @{$failure{unlink}}, $file;
         return;
     }
 }
@@ -595,7 +595,7 @@ sub _cp_unlink {
 sub _exists_and_not_override {
     my ($o, $path) = @_;
 
-    if (-e $path && !$o->{'override'}) {
+    if (-e $path && !$o->{override}) {
         $Ret_status = EXISTS;
         return 1;
     }
@@ -635,9 +635,9 @@ sub _traverse {
         $limit, @stack);
     $count = 0;
 
-    $o->_dir_read($o->{'source'}, \@eval);
+    $o->_dir_read($o->{source}, \@eval);
     @eval =
-      map { File::Spec->catfile($o->{'source'}, $_) }
+      map { File::Spec->catfile($o->{source}, $_) }
       @eval;
 
     TRAVERSE:
@@ -663,7 +663,7 @@ sub _traverse {
         }
 
         unless (@eval) {
-            if (++$count == $traverse_depth) {
+            if (++$count == $Traverse_depth) {
                 last TRAVERSE;
             }
             @eval = @stack;
@@ -682,9 +682,9 @@ sub _traverse {
 #
 
 sub _traversed_rm_dir {
-    if ($traverse_rmdir) {
-        if (!$traverse_depth
-          && $traverse_unlink) {
+    if ($Traverse_rmdir) {
+        if (!$Traverse_depth
+          && $Traverse_unlink) {
             foreach (@Dirs) {
                 rmtree($_, 1, 1);
             }
@@ -949,31 +949,31 @@ Traversal processing of files within the source directory may not be activated b
 an argument to the object constructor, it requires the following variable to be set to true:
 
  # traversal mode
- $Dir::Split::traverse        = 1;
+ $Dir::Split::Traverse        = 1;
 
 By default no depth limit e.g. all underlying directories / files will be evaluated.
 
 B<options>
 
  # traversing depth
- $Dir::Split::traverse_depth  = 3;
+ $Dir::Split::Traverse_depth  = 3;
 
 The traversal depth equals the directory depth that will be entered.
 
  # unlink files in source
- $Dir::Split::traverse_unlink = 1;
+ $Dir::Split::Traverse_unlink = 1;
 
 Unlinks files after they have been moved to their new locations.
 
  # remove directories in source
- $Dir::Split::traverse_rmdir  = 1;
+ $Dir::Split::Traverse_rmdir  = 1;
 
 Removes the directories themselves after the files have been moved. In order to take effect,
-this option requires the C<$Dir::Split::traverse_unlink> to be set. Directories will not be
+this option requires the C<$Dir::Split::Traverse_unlink> to be set. Directories will not be
 removed if a traversing depth has been set.
 
-It is B<not> recommended to turn on the latter options C<$Dir::Split::traverse_unlink> and
-C<$Dir::Split::traverse_rmdir>, unless you're aware of the consequences they imply.
+It is B<not> recommended to turn on the latter options C<$Dir::Split::Traverse_unlink> and
+C<$Dir::Split::Traverse_rmdir>, unless you're aware of the consequences they imply.
 
 =head1 EXAMPLES
 
