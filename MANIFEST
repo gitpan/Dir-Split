@@ -1,0 +1,8 @@
+CHANGES
+MANIFEST
+META.yml
+Makefile.PL
+README
+bin/split.pl
+lib/Dir/Split.pm
+t/Dir-Split.t

@@ -1,0 +1,31 @@
+Dir::Split
+==========
+
+Extension that splits files of a directory to subdirectories.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+   
+SCRIPTS
+
+bin/split.pl
+
+Interface to Dir::Split that contains predefined options
+and evaluates return codes & debug data.
+
+LICENSE
+
+This program is free software;
+you may redistribute it and/or modify it under the same terms as Perl itself.
+
+AUTHOR
+
+Steven Schubiger
+
+
