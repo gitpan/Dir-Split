@@ -4,7 +4,7 @@
 #
 # Splits the files of a directory to subdirectories.
 #
-# $Id: Split.pm,v 0.03.1 2003/12/25 13:44:53 st.schubiger Exp $
+# $Id: Split.pm,v 0.04 2003/12/25 13:44:53 st.schubiger Exp $
 #
 #============================================================================
 
@@ -12,7 +12,7 @@ package Dir::Split;
 
 # pragmas
 use strict;
-use vars qw ($VERSION);
+use vars qw($VERSION);
 #use warnings;
 
 # global variables
@@ -25,7 +25,7 @@ our ($hash_opt_ref,
      $suffix_sep);
 
 CONSTANTS: {
-    $VERSION = 0.03.1;
+    $VERSION = 0.04;
 }
 
 MODULES: {
@@ -61,8 +61,8 @@ sub split {
     my $self = shift;
     local ($scalar_source_dir_ref, $scalar_target_dir_ref, $hash_opt_ref) = @_;
     croak q~Invalid arguments: split (\$source_dir, \$target_dir, \%hash_opt)~
-        unless (ref $scalar_source_dir_ref eq 'SCALAR') && (ref $scalar_target_dir_ref eq 'SCALAR')
-        && (ref $hash_opt_ref eq 'HASH');
+      unless (ref $scalar_source_dir_ref eq 'SCALAR') && (ref $scalar_target_dir_ref eq 'SCALAR')
+      && (ref $hash_opt_ref eq 'HASH');
 
     # local variables
     local ($sub_dir_ident,
@@ -122,7 +122,7 @@ sub _eval_files {
     my ($self, $array_files_ref) = @_;
 
     opendir S, "${$scalar_source_dir_ref}" or
-        croak qq~Could not open ${$scalar_source_dir_ref} for read-access: $!~;
+      croak qq~Could not open ${$scalar_source_dir_ref} for read-access: $!~;
     my @files = grep { !/^\./ } readdir S;
     closedir S or croak qq~Could not close ${$scalar_source_dir_ref}: $!~;
 
@@ -151,7 +151,7 @@ sub _eval_suffix_highest_number {
     my ($self, $scalar_suffix_ref) = @_;
 
     opendir D, "${$scalar_target_dir_ref}" or
-        croak qq~Could not open ${$scalar_target_dir_ref} for read-access: $!~;
+      croak qq~Could not open ${$scalar_target_dir_ref} for read-access: $!~;
     my @files = readdir D;
     closedir D or croak qq~Could not close ${$scalar_target_dir_ref}: $!~;
 

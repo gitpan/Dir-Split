@@ -17,5 +17,5 @@ BEGIN {
 isa_ok ($obj, 'Dir::Split');
 ok (mkpath ('./$tmp_path', 0), 'mkpath');
 
-# rm temporary dir
+# rm temp dir
 rmtree ('./$tmp_path', 0, 0) or die "Could not remove ./$tmp_path: $!";

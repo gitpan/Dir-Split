@@ -1,7 +1,7 @@
 Revision history for Perl extension Dir::Split.
 
-0.03.1 2003/12/25
- - testfile renamed to 'test.t';
+0.04 2003/12/25
+ - testfile renamed to 'basic.t';
    require_ok, use_ok & isa_ok implemented.
 
 0.02 2003/12/24
