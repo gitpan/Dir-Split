@@ -8,11 +8,12 @@ WriteMakefile(
     PREREQ_PM    => { Carp        => 0,
                       File::Copy  => 0,
                       File::Path  => 0,
+                      File::Spec  => 0,
                       File::Temp  => 0,
                       Test::More  => 0,
                    },
     'dist'       => { COMPRESS => 'gzip', SUFFIX => 'gz' },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-       (ABSTRACT   => 'Splits the files of a directory to subdirectories.',
+       (ABSTRACT   => 'Splits the files of a directory to subdirectories',
         AUTHOR     => 'Steven Schubiger') : ()),
 );

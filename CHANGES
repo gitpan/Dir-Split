@@ -1,8 +1,17 @@
 Revision history for Perl extension Dir::Split.
 
+0.08 2003/12/29
+ - interface options are embedded as object data.
+ - directories within the source dir are ignored.
+ - lowercasing filenames has been removed
+   (sort distincts between upper-&-lower case).
+ - split() returns the amount of files that have been
+   moved; undef if none.
+ - documentation improved.
+
 0.07 2003/12/28
- - Dir-Split.t invokes File::Temp::tmpnam() to get hold
-   of a temp dir name.
+ - Dir-Split.t invokes File::Temp::tmpnam()
+   to obtain a temp dir name.
  - minor code changes.
 
 0.04 2003/12/25
@@ -11,7 +20,7 @@ Revision history for Perl extension Dir::Split.
 
 0.02 2003/12/24
  - testfile 'dir_split.t' added.
- - extended documentation.
+ - documentation extended.
  - minor code changes.
 
 0.01 2003/12/23
