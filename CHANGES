@@ -1,8 +1,12 @@
 Revision history for Perl extension Dir::Split.
 
+0.31 2003/12/31
+ - interface input (the behavior hash) is
+   checked upon its ``sanity".
+
 0.3 2003/12/31
  - code refinement; characteristic splitting
-   procedures implemented. 
+   procedures implemented.
  - documentation expanded; covers characteristic
    splitting options and example.
 
@@ -10,7 +14,7 @@ Revision history for Perl extension Dir::Split.
  - bug removement.
 
 0.2 2003/12/30
- - further sub "inventions".
+ - further sub ``inventions".
  - inefficiency clean-up.
 
 0.1 2003/12/29
