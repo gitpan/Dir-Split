@@ -4,7 +4,7 @@
 #
 # Splits the files of a directory to subdirectories.
 #
-# $Id: Split.pm,v 0.04 2003/12/25 13:44:53 st.schubiger Exp $
+# $Id: Split.pm,v 0.05 2003/12/25 13:44:53 st.schubiger Exp $
 #
 #============================================================================
 
@@ -25,7 +25,7 @@ our ($hash_opt_ref,
      $suffix_sep);
 
 CONSTANTS: {
-    $VERSION = 0.04;
+    $VERSION = 0.05;
 }
 
 MODULES: {

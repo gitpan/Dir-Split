@@ -3,6 +3,7 @@ Dir::Split
 
 Module that splits the files of a directory to subdirectories.
 
+
 INSTALLATION
 
 To install this module type the following:
@@ -11,6 +12,7 @@ To install this module type the following:
    make
    make test
    make install
+
 
 COPYRIGHT
 
