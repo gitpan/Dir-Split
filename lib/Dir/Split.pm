@@ -1,13 +1,13 @@
 package Dir::Split;
 
-$VERSION = '0.68';
+$VERSION = '0.69';
 @EXPORT_OK = qw(split_dir);
 
 use strict 'vars';
 use base qw(Exporter);
 use Carp 'croak';
 use File::Basename;
-use File::Copy 'cp';
+use File::Copy;
 use File::Find ();
 use File::Path;
 use File::Spec;
@@ -26,9 +26,7 @@ our(
     @dirs,               # the behavior of local().
     @files,
     %files,
-    $path,
     $suffix,
-    $target_path,
 );
 
 sub NO_ACTION {  0 }
@@ -38,6 +36,7 @@ sub FAILURE   { -2 }
 
 sub split_dir {
     local $o = &_assign_var; undef @_; 
+    
     local(@dirs, @files);
 
     _sanity_input();
@@ -48,7 +47,7 @@ sub split_dir {
     if (@files) {
         $ret_state = ACTION;
 	
-	local(%files, $path, $suffix);
+	local(%files, $suffix);
         
         _sort_files()           if ($o->{mode} eq 'num');
         _suffix();
@@ -245,12 +244,11 @@ sub _move {
 
 sub _move_num {
     for (; @files; $suffix++) {
-        _mkpath($suffix);
+        my $target_path = _mkpath($suffix);
 	
-        for (my $copied = 0; $copied < $o->{f_limit} 
-	  && @files; $copied++) {
+        for (my $copied = 0; $copied < $o->{f_limit} && @files; $copied++) {
 	    my $file = shift @files;
-            _cp_unlink($file);
+            _copy_unlink($file, $target_path);
             
         }
     }
@@ -258,10 +256,10 @@ sub _move_num {
 
 sub _move_char {
     for my $suffix (sort keys %files) {
-        _mkpath($suffix);
+        my $target_path = _mkpath($suffix);
 
 	while (my $file = shift @{$files{$suffix}}) {
-            _cp_unlink($file);
+            _copy_unlink($file, $target_path);
         }
     }
 }
@@ -269,18 +267,20 @@ sub _move_char {
 sub _mkpath {
     my($suffix) = @_;
     
-    $target_path = File::Spec->catfile
+    my $target_path = File::Spec->catfile
       ($o->{target}, "$o->{ident}$o->{sep}$suffix");
     
-    return if -e $target_path;
+    return $target_path if -e $target_path;
     
     mkpath($target_path, $o->{verbose})
       ? $track{target}{dirs}++
       : croak "Dir $target_path couldn't be created: $!";
+      
+    return $target_path;
 }
 
-sub _cp_unlink {
-    my($file) = @_;
+sub _copy_unlink {
+    my($file, $target_path) = @_;
     my($source_file, $target_file);
     
     if ($Traverse) {
@@ -306,7 +306,7 @@ sub _copy {
 	return 0;
     }
     
-    if (!(cp $source_file, $target_file)) {
+    if (!(copy $source_file, $target_file)) {
         push @{$failure{copy}}, $target_file;
         return 0;    
     }
