@@ -4,4 +4,4 @@ META.yml
 Makefile.PL
 README
 lib/Dir/Split.pm
-t/basic.t
+t/Dir-Split.t

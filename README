@@ -1,8 +1,7 @@
 Dir::Split
 ==========
 
-Module that splits the files of a directory to subdirectories.
-
+Extension that splits the files of a directory to subdirectories.
 
 INSTALLATION
 
@@ -13,12 +12,13 @@ To install this module type the following:
    make test
    make install
 
+LICENSE
 
-COPYRIGHT
+This program is free software; 
+you may redistribute it and/or modify it under the same terms as Perl itself.
 
-Copyright 2003 Steven Schubiger, <st.schubiger@swissinfo.org>.
+AUTHOR
 
-This program is free software; you may redistribute it and/or modify it
-under the same terms as Perl itself.
+Steven Schubiger
 
 

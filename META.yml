@@ -10,5 +10,5 @@ recommends:
     Test::More:                    0
 distribution_type: module
 license: artistic
-dist_author: Steven Schubiger, <st.schubiger@swissinfo.org>.
+dist_author: Steven Schubiger
 dist_abstract: Splits the files of a directory to subdirectories.
