@@ -47,26 +47,29 @@ $return = -255;
 );
 
 
-# numeric object
+# numeric splitting
 #
-$dir = Dir::Split->new(\%num_options);
+#$dir = Dir::Split->new(\%num_options);
 
-# characteristic object
+# characteristic splitting
 #
 #$dir = Dir::Split->new(\%char_options);
 
-$dir->{'source'} = '/source';
-$dir->{'target'} = '/target';
+# source and target dir
+#
+#$dir->{'source'} = '/source';
+#$dir->{'target'} = '/target';
 
 # traversal mode and options.
 #
 #$Dir::Split::traverse        = 1;
+#$Dir::Split::traverse_depth  = 2;
 #$Dir::Split::traverse_unlink = 0;
 #$Dir::Split::traverse_rmdir  = 0;
 
-# split & evaluate the return status.
+# split and evaluate the return status.
 #
-#$return = $dir->split;
+#$return = $dir->split();
 
 # action
 if ($return == 1) {
