@@ -49,7 +49,7 @@ $return = -255;
 
 # numeric object
 #
-$dir = Dir::Split->new(\%num_options);
+#$dir = Dir::Split->new(\%num_options);
 
 # characteristic object
 #
