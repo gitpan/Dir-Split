@@ -2,10 +2,10 @@ use Dir::Split;
 
 #
 # Uncomment the lines at the bottom accordingly
-# whether numeric or characteristic splitting shall be 
-# committed. 
+# whether numeric or characteristic splitting shall be
+# committed.
 #
-# Source and target dir might require some adjustment.
+# Source & target dir vars might require some adjustment.
 #
 
 %num_behavior = (  mode    =>    'num',
@@ -37,13 +37,13 @@ use Dir::Split;
                     },
 
                     suffix  => {  separator   =>         '-',
-                                  case        =>     'upper',
+                                  case        =>     'lower',
                     },
 
 );
 
-$source_dir = '/tmp/src';
-$target_dir = '/tmp/destin';
+#$source_dir = '/tmp/src';
+#$target_dir = '/tmp/target';
 
 
 # numeric splitting
@@ -54,9 +54,9 @@ $target_dir = '/tmp/destin';
 #
 #my $dir = Dir::Split->new (\%char_behavior);
 
-# evaluate the return status and squeek accordingly
+# evaluate the return status and squeek accordingly.
 #
-#if ($files_moved = $dir->split (\$source_dir, \$target_dir) ) {
+#if ($files_moved = $dir->split (\$source_dir, \$target_dir)) {
 #    print "$files_moved files moved.\n";
 #}
 #else {
