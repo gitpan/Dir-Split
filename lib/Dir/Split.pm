@@ -1,6 +1,6 @@
 package Dir::Split;
 
-$VERSION = '0.72';
+$VERSION = '0.74';
 @EXPORT_OK = qw(split_dir);
 
 use strict 'vars';
