@@ -1,21 +1,27 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
+
+use strict;
+use warnings;
 
 use Test::More tests => 4;
 
 use Dir::Split;
 use File::Path;
+use File::Temp;
 
-my $obj = Dir::Split->new;
-my $tmp_path = 'TMP1a2R3v032s13y';
+our ($obj, $PACKAGE, $tmp_dir);
+
+$obj = Dir::Split->new;
+$tmp_dir = File::Temp::tmpnam();
 
 # tests
 BEGIN {
-    my $mname = 'Dir::Split';
-    use_ok ($mname);
-    require_ok ($mname);
+    $PACKAGE = 'Dir::Split';
+    use_ok ($PACKAGE);
+    require_ok ($PACKAGE);
 }
-isa_ok ($obj, 'Dir::Split');
-ok (mkpath ('./$tmp_path', 0), 'mkpath');
+isa_ok ($obj, $PACKAGE);
+ok (mkpath ($tmp_dir, 0), 'mkpath');
 
 # rm temp dir
-rmtree ('./$tmp_path', 0, 0) or die "Could not remove ./$tmp_path: $!";
+rmtree ($tmp_dir, 0, 0) or die "Could not remove $tmp_dir: $!";

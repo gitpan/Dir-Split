@@ -8,6 +8,7 @@ WriteMakefile(
     PREREQ_PM    => { Carp        => 0,
                       File::Copy  => 0,
                       File::Path  => 0,
+                      File::Temp  => 0,
                       Test::More  => 0,
                    },
     'dist'       => { COMPRESS => 'gzip', SUFFIX => 'gz' },

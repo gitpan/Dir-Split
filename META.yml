@@ -7,7 +7,8 @@ requires:
     File::Copy:                    0
     File::Path:                    0
 recommends:
-    Test::More:                    0
+    File::Temp:                    0
+    Test::More:                    0    
 distribution_type: module
 license: artistic
 dist_author: Steven Schubiger
