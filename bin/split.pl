@@ -1,67 +1,70 @@
 use Dir::Split;
 
+use strict;
+use warnings;
+
 #
 # Uncomment the lines at the bottom accordingly
 # whether numeric or characteristic splitting shall be
 # committed.
 #
 # Source & target dir vars might require some adjustment.
-# 
+#
 
 
-#%Dir::Split::Warn = ( file => "exists (d)\t",
-#                      dir  => "exists (f)\t",
+#%Dir::Split::Warn = (  dir  =>    "exists (d)\t",
+#                       file =>    "exists (f)\t",
 #);
 
-%num_behavior = (  mode    =>    'num',
+my %num_behavior = (  mode    =>    'num',
 
-                   options => {  verbose        =>           1,
-                                 warn           =>       'all',
-                                 override       =>      'none',
-                   },
+                      options => {  verbose        =>           1,
+                                    warn           =>       'all',
+                                    override       =>      'none',
+                      },
 
-                   sub_dir => {  identifier     =>      'test',
-                                 file_limit     =>           2,
-                                 file_sort      =>         '+',
-                   },
+                      sub_dir => {  identifier     =>      'test',
+                                    file_limit     =>           2,
+                                    file_sort      =>         '+',
+                      },
 
-                   suffix  => {  continue_num   =>         'n',
-                                 separator      =>         '-',
-                                 length         =>           5,
-                   },
+                      suffix  => {  continue_num   =>         'y',
+                                    separator      =>         '-',
+                                    length         =>           5,
+                      },
 );
 
-%char_behavior = (  mode    =>    'char',
+my %char_behavior = (  mode    =>    'char',
 
-                    options => {  verbose     =>           1,
-                                  warn        =>       'all',
-                                  override    =>      'none',
-                    },
+                       options => {  verbose     =>           1,
+                                     warn        =>       'all',
+                                     override    =>      'none',
+                       },
 
-                    sub_dir => {  identifier  =>      'test',
-                    },
+                       sub_dir => {  identifier  =>      'test',
+                       },
 
-                    suffix  => {  separator   =>         '-',
-                                  case        =>     'lower',
-                    },
+                       suffix  => {  separator   =>         '-',
+                                     case        =>     'lower',
+                       },
 
 );
 
-#$source_dir = '/tmp/src';
-#$target_dir = '/tmp/target';
+my $source_dir = '/tmp/src';
+my $target_dir = '/tmp/target';
 
 
-# numeric splitting
+# numeric object
 #
-#my $dir = Dir::Split->new (\%num_behavior);
+#my $dir = Dir::Split->new(\%num_behavior);
 
-# characteristic splitting
+# characteristic object
 #
-#my $dir = Dir::Split->new (\%char_behavior);
+#my $dir = Dir::Split->new(\%char_behavior);
 
-# evaluate the return status and squeek accordingly.
+# split, evaluate the return status and squeek accordingly.
 #
-#if ($files_moved = $dir->split (\$source_dir, \$target_dir)) {
+#if (my $files_moved = $dir->split(\$source_dir, \$target_dir)) {
 #    print "$files_moved files moved.\n";
 #}
 #else {
