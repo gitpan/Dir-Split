@@ -1,4 +1,4 @@
-# $Id: Split.pm,v 0.60 2004/01/17 17:56:26 sts Exp $
+# $Id: Split.pm,v 0.61 2004/01/17 17:56:26 sts Exp $
 
 package Dir::Split;
 
@@ -7,7 +7,7 @@ use base(Exporter);
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.60';
+our $VERSION = '0.61';
 
 our @EXPORT_OK = q(split_dir);
 
@@ -51,6 +51,7 @@ sub croak {
 
 sub split_dir {
     local %o = _tie_var(@_);
+    undef @_;
 
     local ($ret_status, @dirs, @files);
 
@@ -75,53 +76,23 @@ sub split_dir {
 }
 
 sub _tie_var {
-    my (%assign, %assigned);
+    my %opt = @_;
 
-    %assign = (  mode    =>    'mode',
-
-                 source  =>    'source',
-                 target  =>    'target',
-
-                 options => {  verbose     =>      'verbose',
-                               override    =>     'override',
-                 },
-                 sub_dir => {  identifier  =>        'ident',
-                               file_limit  =>      'f_limit',
-                               file_sort   =>       'f_sort',
-                 },
-                 suffix  => {  separator   =>          'sep',
-                               continue    =>   'num_contin',
-                               length      =>       'length',
-                               case        =>         'case',
-                 },
-    );			    
-
-    # hash ref
-    if (ref $_[0]) {
-        my $opt = $_[0];
-        foreach my $key (keys %$opt) {
-            if (ref $$opt{$key} eq 'HASH') {
-                foreach (keys %{$$opt{$key}}) {
-                    $assigned{$assign{$key}{$_}} = $$opt{$key}{$_};
-                }
-            }
-            else { $assigned{$assign{$key}} = $$opt{$key} }
-        }
-    }
-    # hash
-    else {
-        my %opt = @_;
-        foreach my $key (keys %opt) {
-            if (ref $opt{$key} eq 'HASH') {
-                foreach (keys %{$opt{$key}}) {
-                    $assigned{$assign{$key}{$_}} = $opt{$key}{$_};
-                }
-            }
-            else { $assigned{$assign{$key}} = $opt{$key} }
-        }
-    }
-
-    return %assigned;
+    my %assign;
+    $assign{mode}       = $opt{mode};
+    $assign{source}     = $opt{source};
+    $assign{target}     = $opt{target};
+    $assign{verbose}    = $opt{options}{verbose};
+    $assign{override}   = $opt{options}{override};
+    $assign{ident}      = $opt{sub_dir}{identifier};
+    $assign{f_limit}    = $opt{sub_dir}{file_limit};
+    $assign{f_sort}     = $opt{sub_dir}{file_sort};
+    $assign{sep}        = $opt{suffix}{separator};
+    $assign{num_contin} = $opt{suffix}{continue};
+    $assign{length}     = $opt{suffix}{length};
+    $assign{case}       = $opt{suffix}{case};
+    
+    return %assign;
 };
 
 sub _sanity_input {
@@ -395,25 +366,24 @@ Dir::Split - split files of a directory to subdirectories.
 
  use Dir::Split q(split_dir);
 
- %options = (  mode    =>    'num',
+ $return = split_dir(
+     mode    =>    'num',
 
-               source  =>    '/source',
-               target  =>    '/target',
+     source  =>    '/source',
+     target  =>    '/target',
 
-               options => {  verbose      =>         1,
-                             override     =>         0,
-               },
-               sub_dir => {  identifier   =>     'sub',
-                             file_limit   =>         2,
-                             file_sort    =>       '+',
-               },
-               suffix  => {  separator    =>       '-',
-                             continue     =>         1,
-                             length       =>         5,
-               },
- );
-
- $return = split_dir(\%options);
+     options => {  verbose      =>        1,
+                   override     =>        0,
+     },
+     sub_dir => {  identifier   =>    'sub',
+                   file_limit   =>        2,
+                   file_sort    =>      '+',
+     },
+     suffix  => {  separator    =>      '-',
+                   continue     =>        1,
+                   length       =>        5,
+     },
+ ); 
 
 =head1 DESCRIPTION
 
@@ -440,33 +410,26 @@ splitting tries to keep up the contentual recognition of data.
 
 Split files to subdirectories.
 
-The key / value pairs may be supplied as
-hash reference or directly dumped to the function.
-
- $return = split_dir(\%options);
- 
- or
+The key / value pairs may directly be dumped to the function.
  
  $return = split_dir(
-      mode    =>    'num',
+     mode    =>    'num',
 
-      source  =>    '/source',
-      target  =>    '/target',
+     source  =>    '/source',
+     target  =>    '/target',
 
-      options => {  verbose      =>         1,
-                    override     =>         0,
-      },
-      sub_dir => {  identifier   =>     'sub',
-                    file_limit   =>         2,
-                    file_sort    =>       '+',
-      },
-      suffix  => {  separator    =>       '-',
-                    continue     =>         1,
-                    length       =>         5,
-      },
- );
- 
- 
+     options => {  verbose      =>         1,
+                   override     =>         0,
+     },
+     sub_dir => {  identifier   =>     'sub',
+                   file_limit   =>         2,
+                   file_sort    =>       '+',
+     },
+     suffix  => {  separator    =>       '-',
+                   continue     =>         1,
+                   length       =>         5,
+     },
+ ); 
 
 It is of tremendous importance to notice that checking the return code is a B<must>.
 Leaving the return code untouched will not allow appropriate gathering of harmless

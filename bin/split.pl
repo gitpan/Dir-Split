@@ -62,11 +62,11 @@ $return = -255;
 
 # numeric splitting
 #
-#$return = split_dir(\%num_options);
+#$return = split_dir(%num_options);
 
 # characteristic splitting
 #
-#$return = split_dir(\%char_options);
+#$return = split_dir(%char_options);
 
 # action
 if ($return == 1) { formwrite('track') }
@@ -135,15 +135,14 @@ sub formwrite {
 BEGIN {
     $form{track} = 'format = 
 -------------------
-Source - files: @<<<
+source - files: @<<<
 sprintf "%3d", $Dir::Split::track{source}{files}
-Target - files: @<<<
+target - files: @<<<
 sprintf "%3d", $Dir::Split::track{target}{files}
-Target - dirs : @<<<
+target - dirs : @<<<
 sprintf "%3d", $Dir::Split::track{target}{dirs}
 -------------------
-.
-    ';
+.';
 
     $form{start_debug} = 'format =
 ---------------@<<<<<<<<<<
@@ -152,8 +151,7 @@ START: DEBUG - @<<<<<<<<<<
 $form_o{header}
 ---------------@<<<<<<<<<<
 $form_o{ul} 
-.
-    ';
+.';
     
     $form{end_debug} = 'format =
 ---------------@<<<<<<<<<<
@@ -162,6 +160,5 @@ END  : DEBUG - @<<<<<<<<<<
 $form_o{header}
 ---------------@<<<<<<<<<<
 $form_o{ul} 
-.
-    ';    
+.';    
 }
