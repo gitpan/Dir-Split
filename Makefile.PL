@@ -8,9 +8,9 @@ WriteMakefile(
 		      File::Find     => 0,
                       File::Path     => 0,
                       File::Spec     => 0,
-                   },
+    },
     'dist'       => { COMPRESS => 'gzip', SUFFIX => 'gz' },
-    ($] >= 5.005 ?  
-       (ABSTRACT_FROM => 'lib/Dir/Split.pm',
-        AUTHOR        => 'Steven Schubiger') : ()),
+    ($] >= 5.005 
+      ? (ABSTRACT_FROM => 'lib/Dir/Split.pm') : ()
+    ),
 );

@@ -1,5 +1,8 @@
 Revision history for Perl extension Dir::Split.
 
+0.67 2004/02/01
+ - minor code additions.
+
 0.61 2004/01/18
  - simplified interface options.
 

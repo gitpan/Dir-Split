@@ -2,22 +2,18 @@
 
 use strict;
 use warnings;
-
-use Test::More tests => 3;
-
 use Dir::Split;
-
 use File::Path;
 use File::Temp;
 
-my($PACKAGE, $tmp_dir);
+use Test::More tests => 3;
 
 BEGIN {
-    $PACKAGE = 'Dir::Split';
+    my $PACKAGE = 'Dir::Split';
     use_ok($PACKAGE);
     require_ok($PACKAGE);
 }
 
-$tmp_dir = File::Temp::tmpnam();
-ok(mkpath($tmp_dir, 0), 'mkpath();');
-rmtree($tmp_dir, 0, 0) or die "Could not remove temp dir $tmp_dir: $!";
+my $tmpdir = File::Temp::tmpnam();
+ok(mkpath($tmpdir, 0), 'mkpath();');
+rmtree($tmpdir, 0, 0) or die "Could not remove temp dir $tmpdir: $!";

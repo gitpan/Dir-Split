@@ -1,7 +1,7 @@
 Dir::Split
 ==========
 
-Split files of a directory to subdirectories.
+Split files of a directory to subdirectories
 
 INSTALLATION
 
@@ -16,8 +16,7 @@ SCRIPTS
 
 bin/split.pl
 
-Interface to Dir::Split that splits directories
-and evaluates return codes & debug data.
+Splits directories and evaluates debug data.
 
 LICENSE
 
