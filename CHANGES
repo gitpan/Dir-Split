@@ -1,7 +1,11 @@
 Revision history for Perl extension Dir::Split.
 
+0.36 2004/01/02
+ - presets occupy their own sub.
+ - simplified documentation.
+
 0.34 2004/01/01
- - warning messages upon the encounter of 
+ - warning messages upon the encounter of
    existing files/dirs may be adjusted.
 
 0.33 2004/01/01

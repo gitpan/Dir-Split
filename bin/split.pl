@@ -12,7 +12,7 @@ use warnings;
 #
 
 
-#%Dir::Split::Warn = (  dir  =>    "exists (d)\t",
+#%Dir::Split::warn = (  dir  =>    "exists (d)\t",
 #                       file =>    "exists (f)\t",
 #);
 
@@ -28,8 +28,8 @@ my %num_behavior = (  mode    =>    'num',
                                     file_sort      =>         '+',
                       },
 
-                      suffix  => {  continue_num   =>         'y',
-                                    separator      =>         '-',
+                      suffix  => {  separator      =>         '-',
+                                    continue       =>         'y',
                                     length         =>           5,
                       },
 );
