@@ -1,5 +1,9 @@
 Revision history for Perl module Dir::Split.
 
+0.03 2003/12/25
+ - testfile renamed to 'basic.t';
+   require_ok, use_ok & isa_ok implemented.
+
 0.02 2003/12/24
  - testfile 'dir_split.t' added.
  - extended documentation.

@@ -4,10 +4,9 @@
 #
 # Splits the files of a directory to subdirectories.
 #
-# $Id: Split.pm,v 0.02 2003/12/24 18:35:30 st.schubiger Exp $
+# $Id: Split.pm,v 0.03 2003/12/25 00:20:03 st.schubiger Exp $
 #
 #============================================================================
-
 
 package Dir::Split;
 
@@ -35,7 +34,6 @@ MODULES: {
     use File::Path;
 }
 
-
 #--------------------
 # new (namespace)
 #
@@ -50,7 +48,6 @@ sub new {
 
     return $self;
 }
-
 
 #-----------------------------------------------------
 # split (\$source_dir, \%hash_opt, \$destin_dir)
@@ -100,19 +97,17 @@ sub split {
 
     for (; @files; $i++) {
         my $sub_dir = $sub_dir_ident . "$suffix_sep$i";
-
         unless (mkpath "${$scalar_target_dir_ref}/$sub_dir", $debug_mode) {
-            croak "Could not create ${$scalar_target_dir_ref}/$sub_dir";
+            croak qq~Could not create ${$scalar_target_dir_ref}/$sub_dir: $!~;
         }
 
         for (my $i = 0; $i < $sub_dir_f_limit; $i++) { # cp & rm files
             last unless my $file = shift @files;
             cp $file, "${$scalar_target_dir_ref}/$sub_dir";
-            croak "Could not remove $file: $!" unless unlink $file;
+            croak qq~Could not remove $file: $!~ unless unlink $file;
         }
     }
 }
-
 
 #-----------------------------------------------------
 # _eval_files (\@files)
@@ -127,13 +122,12 @@ sub _eval_files {
     my ($self, $array_files_ref) = @_;
 
     opendir S, "${$scalar_source_dir_ref}" or
-        croak "Could not open ${$scalar_source_dir_ref} for read-access: $!";
+        croak qq~Could not open ${$scalar_source_dir_ref} for read-access: $!~;
     my @files = grep { !/^\./ } readdir S;
-    closedir S or croak "Could not close ${$scalar_source_dir_ref}: $!";
+    closedir S or croak qq~Could not close ${$scalar_source_dir_ref}: $!~;
 
     # if files are to be sorted, lowercase filenames
     @files = map { lc } @files if $sub_dir_f_sort eq '+' || $sub_dir_f_sort eq '-';
-
     if ($sub_dir_f_sort eq '+') { # ascending sort order
         @files = sort @files;
     }
@@ -144,7 +138,6 @@ sub _eval_files {
 
     @{$array_files_ref} = @files;
 }
-
 
 #---------------------------------------------------
 # _eval_suffix_highest_number (\$suffix)
@@ -158,9 +151,9 @@ sub _eval_suffix_highest_number {
     my ($self, $scalar_suffix_ref) = @_;
 
     opendir D, "${$scalar_target_dir_ref}" or
-        croak "Could not open ${$scalar_target_dir_ref} for read-access: $!";
+        croak qq~Could not open ${$scalar_target_dir_ref} for read-access: $!~;
     my @files = readdir D;
-    closedir D or croak "Could not close ${$scalar_target_dir_ref}: $!";
+    closedir D or croak qq~Could not close ${$scalar_target_dir_ref}: $!~;
 
     my @dirs = grep { opendir E, "${$scalar_target_dir_ref}/$_" } @files # crop files
         && closedir E && undef @files;
@@ -177,7 +170,6 @@ sub _eval_suffix_highest_number {
 
     ${$scalar_suffix_ref} = $i;
 }
-
 
 #------------------------------------------------
 # _eval_suffix_sum_up (\$suffix)
@@ -201,6 +193,8 @@ sub _eval_suffix_sum_up {
 }
 
 1;
+
+__END__
 
 =head1 NAME
 
@@ -243,11 +237,11 @@ a destination directory.
 
 =over 4
 
-=item $Dir = Dir::Split->new;
+=item $dir = Dir::Split->new;
 
 Object constructor.
 
-=item $Dir->split (\$source_dir, \$destin_dir, \%hash_opt);
+=item $dir->split (\$source_dir, \$destin_dir, \%hash_opt);
 
 $source_dir specifies the source directory.
 
