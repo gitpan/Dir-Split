@@ -1,5 +1,10 @@
 Revision history for Perl extension Dir::Split.
 
+0.75 2005/03/06
+ - Merged to method calls/OO.
+ - Documentation clean-up.
+ - Added further $TRACKING_* options.
+
 0.67 2004/02/01
  - Minor code additions.
 
@@ -84,9 +89,6 @@ Revision history for Perl extension Dir::Split.
  - Documentation expanded; covers characteristic
    splitting options and example.
 
-0.22 2003/12/30
- - Bug removement.
-
 0.2 2003/12/30
  - Further sub ``inventions".
  - Inefficiency clean-up.
@@ -105,7 +107,7 @@ Revision history for Perl extension Dir::Split.
  - Documentation improved.
 
 0.07 2003/12/28
- - Dir-Split.t invokes File::Temp::tmpnam()
+ - Dir-Split.t invokes File::Temp::tmpnam() 
    to obtain a temp dir name.
  - Minor code changes.
 

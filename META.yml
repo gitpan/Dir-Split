@@ -1,13 +1,17 @@
---- #YAML:1.0
-module_name: Dir-Split
-dist_version_from: lib/Dir/Split.pm
-installdirs: site
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Dir-Split
+version:      0.75
+version_from: lib/Dir/Split.pm
+installdirs:  site
 requires:
-    File::Basename: 0
-    File::Copy:     0
-    File::Find:     0
-    File::Path:     0
-    File::Spec:     0
+    Carp:                          0
+    File::Basename:                0
+    File::Copy:                    0
+    File::Find:                    0
+    File::Path:                    0
+    File::Spec:                    0
+    SelfLoader:                    0
+
 distribution_type: module
-license: perl
-dist_abstract: Split files of a directory to subdirectories
+generated_by: ExtUtils::MakeMaker version 6.17

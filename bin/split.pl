@@ -2,17 +2,16 @@
 
 use strict;
 use warnings;
-use Dir::Split qw(split_dir);
 
-our (%Form, %Form_opt);
-my $return = -255;
+use Dir::Split;
 
-
+our ($dir, %Form, %Form_opt);
+our $retval = $ADJUST;
 
 #
 # Modify following lines accordingly to whether 
 # numeric or characteristic splitting shall be
-# committed.
+# processed.
 #
 
 my %num_options = (  
@@ -50,72 +49,78 @@ my %char_options = (
 
 );
 
-
-# traversal mode and options
+# options
 #
-#$Dir::Split::Traverse        = 1;
-#$Dir::Split::Traverse_unlink = 1;
-#$Dir::Split::Traverse_rmdir  = 1;
-
+#$Dir::Split::UNLINK                = 1;
+#$Dir::Split::TRAVERSE              = 1;
+#$Dir::Split::TRAVERSE_UNLINK       = 1;
+#$Dir::Split::TRAVERSE_RMDIR        = 1;
+#$Dir::Split::TRAVERSE_RMDIR_SOURCE = 1;
 
 # numeric splitting
 #
-#$return = split_dir( %num_options );
+#$dir = Dir::Split->new(%num_options);
 
 # characteristic splitting
 #
-#$return = split_dir( %char_options );
+#$dir = Dir::Split->new(%char_options);
 
-
+# split files
+#
+#$retval = $dir->split_dir;
 
 # End of config
 ###############
 
+# no config
+if ($retval == $ADJUST) {
+    print __FILE__." requires adjustment\n";
+}
 # action
-if ($return == 1) { 
-    formwrite( 'track' );
+elsif ($retval == $ACTION) { 
+    formwrite('track');
 }
 # no action
-elsif ($return == 0) { 
+elsif ($retval == $NOACTION) { 
     print "None moved.\n";
 }
 # existing files
-elsif ($return == -1) {
+elsif ($retval == $EXISTS) {
     local %Form_opt;
 
     $Form_opt{header} = 'EXISTS';
     $Form_opt{ul} = '-' x length $Form_opt{header};
      
-    formwrite( 'start_debug' );
+    formwrite('start_debug');
 
     for my $file (@Dir::Split::exists) {
         print "file:\t$file\n";
     }
     
-    formwrite( 'end_debug' ); 
-    formwrite( 'track' );
+    formwrite('end_debug'); 
+    formwrite('track');
 }
 # copy or unlink failure
-elsif ($return == -2) {
+elsif ($retval == $FAILURE) {
     local %Form_opt;
 
     if (@Dir::Split::exists) {
         $Form_opt{header} = 'EXISTS';
         $Form_opt{ul} = '-' x length $Form_opt{header};
 	
-        formwrite( 'start_debug' );
+        formwrite('start_debug');
 
         for my $file (@Dir::Split::exists) {
             print "file:\t$file\n";
         }
 	
-	formwrite( 'end_debug' );
+	formwrite('end_debug');
     }
     
     $Form_opt{header} = 'FAILURE';
     $Form_opt{ul} = '-' x length $Form_opt{header};
     
-    formwrite( 'start_debug' );
+    formwrite('start_debug');
     
     for my $file (@{$Dir::Split::failure{copy}}) {
         print "copy failed:\t$file\n";
@@ -124,12 +129,8 @@ elsif ($return == -2) {
         print "unlink failed:\t$file\n";
     }
     
-    formwrite( 'end_debug' );
-    formwrite( 'track' );
-}
-# no config
-else {
-    print __FILE__." requires adjustment\n";
+    formwrite('end_debug');
+    formwrite('track');
 }
 
 sub formwrite {
