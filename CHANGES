@@ -1,5 +1,8 @@
 Revision history for Perl extension Dir::Split.
 
+0.40 2003/01/05
+ - non-class data is cleaned up.
+
 0.39 2003/01/04
  - heavy code refactoring.
  - added introductional description

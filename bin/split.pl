@@ -12,51 +12,53 @@ use Dir::Split;
 use strict;
 use warnings;
 
-my $return = -255;
+my ($return, %num_options, %char_options, $dir);
+
+$return = -255;
 
 
-my %num_options = (  mode    =>    'num',
+%num_options = (  mode    =>    'num',
 
-                     options => {  verbose     =>           1,
-                                   override    =>           0,
-                     },
-                     sub_dir => {  identifier  =>       'sub',
-                                   file_limit  =>           2,
-                                   file_sort   =>         '+',
-                     },
-                     suffix  => {  separator   =>         '-',
-                                   continue    =>           1,
-                                   length      =>           5,
-                     },
+                  options => {  verbose     =>           1,
+                                override    =>           0,
+                  },
+                  sub_dir => {  identifier  =>       'sub',
+                                file_limit  =>           2,
+                                file_sort   =>         '+',
+                  },
+                  suffix  => {  separator   =>         '-',
+                                continue    =>           1,
+                                length      =>           5,
+                  },
 );
 
-my %char_options = (  mode    =>    'char',
+%char_options = (  mode    =>    'char',
 
-                      options => {  verbose     =>           1,
-                                    override    =>           0,
-                      },
-                      sub_dir => {  identifier  =>       'sub',
-                      },
-                      suffix  => {  separator   =>         '-',
-                                    case        =>     'upper',
-                                    length      =>           1,
-                      },
+                   options => {  verbose     =>           1,
+                                 override    =>           0,
+                   },
+                   sub_dir => {  identifier  =>       'sub',
+                   },
+                   suffix  => {  separator   =>         '-',
+                                 case        =>     'upper',
+                                 length      =>           1,
+                   },
 
 );
 
 
 # numeric object
 #
-my $dir = Dir::Split->new(\%num_options);
+$dir = Dir::Split->new(\%num_options);
 
 # characteristic object
 #
-#my $dir = Dir::Split->new(\%char_options);
+#$dir = Dir::Split->new(\%char_options);
 
 $dir->{'source'} = '/source';
 $dir->{'target'} = '/target';
 
-# split, evaluate the return status and squeek accordingly.
+# split & evaluate the return status.
 #
 #$return = $dir->split;
 
@@ -99,6 +101,21 @@ EOT
 }
 # copy or unlink failure
 elsif ($return == -2) {
+    if (@Dir::Split::exists) {
+        print <<'EOT';
+--------------------------
+START: DEBUG DATA - EXISTS
+--------------------------
+EOT
+        foreach (@Dir::Split::exists) {
+            print "file:\t$_\n";
+        }
+        print <<'EOT';
+------------------------
+END: DEBUG DATA - EXISTS
+------------------------
+EOT
+    }
     print <<'EOT';
 ---------------------------
 START: DEBUG DATA - FAILURE
@@ -123,5 +140,5 @@ Target - dirs : $Dir::Split::track{'target'}{'dirs'}
 EOT
 } # no config
 else {
-    print "split.pl requires some adjustment.\n";
+    print __FILE__." requires some adjustment.\n";
 }
