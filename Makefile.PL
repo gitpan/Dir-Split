@@ -5,9 +5,10 @@ WriteMakefile(
     DISTNAME     => 'Dir-Split',
     NAME         => 'Dir::Split',
     VERSION_FROM => 'lib/Dir/Split.pm', # finds $VERSION
-    PREREQ_PM    => { File::Copy => 0,
-                      File::Path => 0,
-                      File::Spec => 0,
+    PREREQ_PM    => { File::Basename => 0,
+                      File::Copy     => 0,
+                      File::Path     => 0,
+                      File::Spec     => 0,
                    },
     'dist'       => { COMPRESS => 'gzip', SUFFIX => 'gz' },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005

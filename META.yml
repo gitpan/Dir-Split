@@ -3,6 +3,7 @@ module_name: Dir-Split
 dist_version_from: lib/Dir/Split.pm
 installdirs: site
 requires:
+    File::Basename:                0
     File::Copy:                    0
     File::Path:                    0
     File::Spec:                    0

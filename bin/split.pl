@@ -49,7 +49,7 @@ $return = -255;
 
 # numeric object
 #
-#$dir = Dir::Split->new(\%num_options);
+$dir = Dir::Split->new(\%num_options);
 
 # characteristic object
 #
@@ -57,6 +57,12 @@ $return = -255;
 
 $dir->{'source'} = '/source';
 $dir->{'target'} = '/target';
+
+# traversal mode and options.
+#
+#$Dir::Split::traverse        = 1;
+#$Dir::Split::traverse_unlink = 0;
+#$Dir::Split::traverse_rmdir  = 0;
 
 # split & evaluate the return status.
 #
