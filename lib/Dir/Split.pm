@@ -1,4 +1,4 @@
-# $Id: Split.pm,v 0.62 2004/01/19 09:58:57 sts Exp $
+# $Id: Split.pm,v 0.63 2004/01/19 09:58:57 sts Exp $
 
 package Dir::Split;
 
@@ -7,7 +7,7 @@ use base qw(Exporter);
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.62';
+our $VERSION = '0.63';
 
 our @EXPORT_OK = q(split_dir);
 
@@ -453,13 +453,13 @@ No action.
 
 Exists.
 
-I<(see OPTIONS / debug / existing)>
+(see OPTIONS / debug)
 
 =item (-2)
 
 Failure.
 
-I<(see OPTIONS / debug / failures)>
+(see OPTIONS / debug)
 
 =back
 
@@ -671,7 +671,7 @@ Above example: directory consisting of 512 files successfully splitted to 128 di
 
 =head2 debug
 
-=head3 existing
+B<existing>
 
 If C<split_dir()> returns a EXISTS, this implys that the B<override> option is disabled and
 files weren't moved due to existing files within the target subdirectories; they will have
@@ -680,7 +680,7 @@ their paths appearing in C<@Dir::Split::exists>.
  file    @Dir::Split::exists    # existing files, not attempted to
                                 # be overwritten.
 
-=head3 failures
+B<failures>
 
 If C<split_dir()> returns a FAILURE, this most often implys that the B<override> option is enabled
 and existing files could not be overriden. Files that could not be copied / unlinked,
