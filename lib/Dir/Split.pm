@@ -2,27 +2,38 @@
 #
 # Dir::Split module
 #
-# Moves files from a source directory to numbered subdirectories within
-# a destination directory.
+# Splits the files of a directory to subdirectories.
 #
-# $Id: Split.pm,v 0.01 2003/12/21 22:53:12 st.schubiger Exp $
+# $Id: Split.pm,v 0.02 2003/12/24 18:35:30 st.schubiger Exp $
 #
 #============================================================================
 
+
 package Dir::Split;
+
+# pragmas
+use strict;
+use vars qw ($VERSION);
+#use warnings;
+
+# global variables
+our ($hash_opt_ref,
+     $scalar_source_dir_ref,
+     $scalar_target_dir_ref,
+     $sub_dir_ident,
+     $sub_dir_f_sort,
+     $suffix_l,
+     $suffix_sep);
+
+CONSTANTS: {
+    $VERSION = 0.02;
+}
 
 MODULES: {
     use Carp;
     use File::Copy 'cp';
     use File::Path;
-    use SelfLoader;
 }
-
-$VERSION = 0.01;
-
-1;
-
-__DATA__
 
 
 #--------------------
@@ -51,7 +62,10 @@ sub new {
 
 sub split {
     my $self = shift;
-    local ($scalar_source_dir_ref, $hash_opt_ref, $scalar_target_dir_ref) = @_;
+    local ($scalar_source_dir_ref, $scalar_target_dir_ref, $hash_opt_ref) = @_;
+    croak q~Invalid arguments: split (\$source_dir, \$target_dir, \%hash_opt)~
+        unless (ref $scalar_source_dir_ref eq 'SCALAR') && (ref $scalar_target_dir_ref eq 'SCALAR')
+        && (ref $hash_opt_ref eq 'HASH');
 
     # local variables
     local ($sub_dir_ident,
@@ -92,7 +106,7 @@ sub split {
         }
 
         for (my $i = 0; $i < $sub_dir_f_limit; $i++) { # cp & rm files
-            last unless my $file = shift (@files);
+            last unless my $file = shift @files;
             cp $file, "${$scalar_target_dir_ref}/$sub_dir";
             croak "Could not remove $file: $!" unless unlink $file;
         }
@@ -117,7 +131,8 @@ sub _eval_files {
     my @files = grep { !/^\./ } readdir S;
     closedir S or croak "Could not close ${$scalar_source_dir_ref}: $!";
 
-    @files = map { lc } @files if ($sub_dir_f_sort eq '+' || $sub_dir_f_sort eq '-'); # lower-case filenames if sorting mode
+    # if files are to be sorted, lowercase filenames
+    @files = map { lc } @files if $sub_dir_f_sort eq '+' || $sub_dir_f_sort eq '-';
 
     if ($sub_dir_f_sort eq '+') { # ascending sort order
         @files = sort @files;
@@ -147,10 +162,11 @@ sub _eval_suffix_highest_number {
     my @files = readdir D;
     closedir D or croak "Could not close ${$scalar_target_dir_ref}: $!";
 
-    my @dirs = grep { opendir E, "${$scalar_target_dir_ref}/$_" } @files
-        && undef @files; # crop files
+    my @dirs = grep { opendir E, "${$scalar_target_dir_ref}/$_" } @files # crop files
+        && closedir E && undef @files;
 
-    my $sep = quotemeta ($suffix_sep);
+    my ($i, $sep);
+    $sep = quotemeta ($suffix_sep);
     foreach (@dirs) {
         $_ =~ s/(.+?)$sep(.*)/$1/; # extract exist. identifier (prefix)
         if ($sub_dir_ident eq $_) { # supplied identifier matches existing one
@@ -175,7 +191,8 @@ sub _eval_suffix_sum_up {
     my ($self, $scalar_suffix_ref) = @_;
 
     my $i = ${$scalar_suffix_ref};
-    if ( length ($i) < $suffix_l || length ($i) > $suffix_l) { # suffix length too low or to big
+    # suffix length too low or to big
+    if (length ($i) < $suffix_l || length ($i) > $suffix_l) {
         my $format = "%0." . "$suffix_l" . 'd';
         $i = sprintf $format, $i; # adjust suffix length
     }
@@ -183,26 +200,54 @@ sub _eval_suffix_sum_up {
     ${$scalar_suffix_ref} = $i;
 }
 
-__END__
+1;
 
 =head1 NAME
 
-Dir::Split
+Dir::Split - Splits the files of a directory to subdirectories
+
+=head1 SYNOPSIS
+
+    use Dir::Split;
+
+    my $dir = Dir::Split->new;
+
+    $source_dir = '/var/tmp/src';
+    $destin_dir = '/var/tmp/destin';
+
+    %hash_opt = (
+                   debug   =>    0,
+
+                   sub_dir => {
+                                 identifier          =>    'system',
+                                 file_limit          =>         '2',
+                                 file_sort           =>         '+',
+                   },
+
+                   suffix =>  {
+                                 separator           =>         '.',
+                                 length              =>           4,
+                                 continue_numbering  =>         'y',
+                   },
+
+    );
+
+    $dir->split (\$source_dir, \$destin_dir, \%hash_opt);
 
 =head1 DESCRIPTION
 
-Module that moves files from a source directory to numbered subdirectories within
+Dir::Split moves files from a source directory to numbered subdirectories within
 a destination directory.
 
 =head1 METHODS
 
 =over 4
 
-=item new Dir::Split;
+=item $Dir = Dir::Split->new;
 
 Object constructor.
 
-=item split (\$source_dir, \%hash_opt, \$destin_dir);
+=item $Dir->split (\$source_dir, \$destin_dir, \%hash_opt);
 
 $source_dir specifies the source directory.
 
@@ -250,10 +295,22 @@ where it previously stopped or start at 1 (see table CONTINUE NUMBERING MODES be
     -  descending sort order
 
   CONTINUE NUMBERING MODES
-    y  yes
-    n  no
+    y   yes
+    ''  no
 
 =back
+
+=head1 EXAMPLES
+
+Assuming the source directory '/var/tmp/src' contains 9 files, the directory
+tree in the destination directory '/var/tmp/destin' will look as following:
+
+    + /var/tmp/destin
+    +- system.0001 / 2 file(s)
+    +- system.0002 / 2 "
+    +- system.0003 / 2 "
+    +- system.0004 / 2 "
+    +- system.0005 / 1 "
 
 =head1 SEE ALSO
 
@@ -261,10 +318,11 @@ perl(1)
 
 =head1 COPYRIGHT
 
-Copyright 2003 Steven Schubiger
+Copyright 2003 Steven Schubiger, E<lt>st.schubiger@swissinfo.orgE<gt>.
 
 This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut
+
 
 

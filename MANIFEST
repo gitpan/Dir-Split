@@ -3,3 +3,4 @@ MANIFEST
 Makefile.PL
 README
 lib/Dir/Split.pm
+t/dir_split.t

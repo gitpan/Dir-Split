@@ -1,4 +1,9 @@
-Revision history for Perl extension Dir::Split.      
+Revision history for Perl module Dir::Split.
+
+0.02 2003/12/24
+ - testfile 'dir_split.t' added.
+ - extended documentation.
+ - minor code changes.
 
 0.01 2003/12/23
  - initial version.

@@ -1,7 +1,10 @@
 use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
+
 WriteMakefile(
+    'DISTNAME' => 'Dir-Split',
     'NAME'    => 'Dir::Split',
-    'VERSION_FROM' => 'lib/Dir/Split.pm', # finds $VERSION
+    'VERSION_FROM' => 'lib/Dir/Split.pm',
+    ($] >= 5.005 ?
+       (ABSTRACT   => 'Splits the files of a directory to subdirectories.',
+        AUTHOR     => 'Steven Schubiger <st.schubiger@swissinfo.org>') : ()),
 );

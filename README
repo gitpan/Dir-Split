@@ -1,8 +1,7 @@
 Dir::Split
 ==========
 
-Module that moves files from a source directory to
-numbered subdirectories within a destination directory.
+Module that splits the files of a directory to subdirectories.
 
 INSTALLATION
 
@@ -10,4 +9,14 @@ To install this module type the following:
 
    perl Makefile.PL
    make
+   make test
    make install
+
+COPYRIGHT
+
+Copyright 2003 Steven Schubiger, <st.schubiger@swissinfo.org>.
+
+This program is free software; you may redistribute it and/or modify it
+under the same terms as Perl itself.
+
+
