@@ -80,17 +80,17 @@ elsif ($return == 0) {
 # existing files
 elsif ($return == -1) {
     print <<'EOT';
---------------------------
-START: DEBUG DATA - EXISTS
---------------------------
+---------------------
+START: DEBUG - EXISTS
+---------------------
 EOT
     foreach (@Dir::Split::exists) {
         print "file:\t$_\n";
     }
     print <<"EOT";
-------------------------
-END: DEBUG DATA - EXISTS
-------------------------
+-------------------
+END: DEBUG - EXISTS
+-------------------
 
 -------------------
 Source - files: $Dir::Split::track{'source'}{'files'}
@@ -103,23 +103,23 @@ EOT
 elsif ($return == -2) {
     if (@Dir::Split::exists) {
         print <<'EOT';
---------------------------
-START: DEBUG DATA - EXISTS
---------------------------
+---------------------
+START: DEBUG - EXISTS
+---------------------
 EOT
         foreach (@Dir::Split::exists) {
             print "file:\t$_\n";
         }
         print <<'EOT';
-------------------------
-END: DEBUG DATA - EXISTS
-------------------------
+-------------------
+END: DEBUG - EXISTS
+-------------------
 EOT
     }
     print <<'EOT';
----------------------------
-START: DEBUG DATA - FAILURE
----------------------------
+----------------------
+START: DEBUG - FAILURE
+----------------------
 EOT
     foreach (@{$Dir::Split::failure{'copy'}}) {
         print "copy failed:\t$_\n";
@@ -128,9 +128,9 @@ EOT
         print "unlink failed:\t$_\n";
     }
     print <<"EOT";
--------------------------
-END: DEBUG DATA - FAILURE
--------------------------
+--------------------
+END: DEBUG - FAILURE
+--------------------
 
 -------------------
 Source - files: $Dir::Split::track{'source'}{'files'}

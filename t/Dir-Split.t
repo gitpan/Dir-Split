@@ -6,10 +6,11 @@ use warnings;
 use Test::More tests => 4;
 
 use Dir::Split;
+
 use File::Path;
 use File::Temp;
 
-our ($obj, $PACKAGE, $tmp_dir);
+my ($obj, $PACKAGE, $tmp_dir);
 
 $obj = Dir::Split->new ({});
 $tmp_dir = File::Temp::tmpnam();
