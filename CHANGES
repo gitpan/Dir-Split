@@ -1,5 +1,11 @@
 Revision history for Perl extension Dir::Split.
 
+0.3 2003/12/31
+ - code refinement; characteristic splitting
+   procedures implemented. 
+ - documentation expanded; covers characteristic
+   splitting options and example.
+
 0.22 2003/12/30
  - bug removement.
 

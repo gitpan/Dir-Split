@@ -14,6 +14,6 @@ WriteMakefile(
                    },
     'dist'       => { COMPRESS => 'gzip', SUFFIX => 'gz' },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-       (ABSTRACT   => 'Splits the files of a directory to subdirectories.',
+       (ABSTRACT   => 'Split the files of a directory to subdirectories.',
         AUTHOR     => 'Steven Schubiger') : ()),
 );
