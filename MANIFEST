@@ -3,5 +3,5 @@ MANIFEST
 META.yml
 Makefile.PL
 README
-lib/Dir/Split.pm
+bin/split.pl
 t/Dir-Split.t

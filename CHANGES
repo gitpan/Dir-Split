@@ -1,8 +1,12 @@
 Revision history for Perl extension Dir::Split.
 
+0.32 2004/01/01
+ - bin/split.pl added which commits a numeric
+   or characteristic dir splitting by choice.
+
 0.31 2003/12/31
  - interface input (the behavior hash) is
-   checked upon its ``sanity".
+   sanity-checked.
 
 0.3 2003/12/31
  - code refinement; characteristic splitting
