@@ -1,13 +1,13 @@
 Revision history for Perl extension Dir::Split.
 
-0.42 2003/01/05
+0.42 2004/01/05
  - the constructor new() accepts either
    a hash ref or a hash dump.
 
-0.40 2003/01/05
+0.40 2004/01/05
  - non-class data is cleaned up.
 
-0.39 2003/01/04
+0.39 2004/01/04
  - heavy code refactoring.
  - added introductional description
    of numeric & characteristic splitting
@@ -15,7 +15,7 @@ Revision history for Perl extension Dir::Split.
  - characteristic suffixes may have a
    variable length; explanation added.
 
-0.38 2003/01/04
+0.38 2004/01/04
  - debug data upon existing files /
    copy & unlink failures available.
  - the script 'bin/split.pl' evaluates the return
