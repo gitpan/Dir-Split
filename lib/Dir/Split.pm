@@ -1,13 +1,13 @@
-# $Id: Split.pm,v 0.61 2004/01/17 17:56:26 sts Exp $
+# $Id: Split.pm,v 0.62 2004/01/19 09:58:57 sts Exp $
 
 package Dir::Split;
 
 use 5.006;
-use base(Exporter);
+use base qw(Exporter);
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.61';
+our $VERSION = '0.62';
 
 our @EXPORT_OK = q(split_dir);
 
@@ -123,10 +123,10 @@ sub _sanity_input {
         unless ($o{target}) {
             $err_input = $err_msg{target}; last;
         }
-        unless ($o{verbose} =~ /^0|1$/) {
+        unless ($o{verbose} =~ /^(?:0|1)$/) {
             $err_input = $err_msg{verbose}; last;
         }
-        unless ($o{override} =~ /^0|1$/) {
+        unless ($o{override} =~ /^(?:0|1)$/) {
             $err_input = $err_msg{override}; last;
         }
         unless ($o{ident} =~ /\w/) {
@@ -146,7 +146,7 @@ sub _sanity_input {
             unless ($o{f_sort} eq '+' || $o{f_sort} eq '-') {
                 $err_input = $err_msg{f_sort}; last;
             }
-            unless ($o{num_contin} =~ /^0|1$/) {
+            unless ($o{num_contin} =~ /^(?:0|1)$/) {
                 $err_input = $err_msg{num_contin}; last;
             }
         }
@@ -264,7 +264,7 @@ sub _dir_read {
 
     opendir D, $dir
       or croak qq~Could not open dir $dir for read-access: $!~;
-    @$files = readdir D; splice @$files, 0, 2;
+    @$files = readdir D; splice @$files,0,2;
     closedir D or croak qq~Could not close dir $dir: $!~;
 }
 
@@ -351,7 +351,7 @@ sub _traverse {
 sub _traversed_rmdir {
     if ($Traverse_rmdir && $Traverse_unlink) {
         foreach (@dirs) { 
-	    rmtree($_, 1, 1);
+	    rmtree $_,1,1;
 	}
     }
 }
@@ -411,7 +411,7 @@ splitting tries to keep up the contentual recognition of data.
 Split files to subdirectories.
 
 The key / value pairs may directly be dumped to the function.
- 
+
  $return = split_dir(
      mode    =>    'num',
 
@@ -758,53 +758,12 @@ B<characteristic splitting>
  +- system-m
  +-- mnop
 
-=head1 FAQ
-
-=over 4
-
-=item B<Has the functionality of C<Dir::Split> been tested?>
-
-Yes. I may not have covered all permuting cases,
-but it should behave I<mostly> sane, if certain options
-such as numbering continuation are enabled and others,
-like overriding, are disabled.
-
-=item B<Portability?>
-
-Has not yet been extensively tested. C<Dir::Split>
-relies mostly upon C<File::> nested modules in spite of
-filesystem operations such as copying, unlinking and
-selecting an appropriate path separator; thus it should
-probably be portable.
-
-=item B<Will you add any additional features?>
-
-Not unless they prove to be of unique usefulness.
-C<Dir::Split> is already heavyweight enough and I am rather
-careful in terms of new inclusions; proposals towards additions
-should be well grounded.
-
-=back
-
 =head1 EXPORT
 
-C<split_dir()> upon request.
-
-=head1 DEPENDENCIES
-
-L<File::Basename>, L<File::Copy>, L<File::Find>, L<File::Path>, L<File::Spec>.
+C<split_dir()> is exportable.
 
 =head1 SEE ALSO
 
-perl(1)
-
-=head1 LICENSE
-
-This program is free software; 
-you may redistribute it and/or modify it under the same terms as Perl itself.
-
-=head1 AUTHOR
-
-Steven Schubiger
+L<File::Basename>, L<File::Copy>, L<File::Find>, L<File::Path>, L<File::Spec>.
 
 =cut

@@ -9,8 +9,6 @@
 use strict 'vars';
 use warnings;
 
-$SIG{__WARN__} = sub { return '' };
-
 use Dir::Split q(split_dir);
 
 our ($return, %num_options, %char_options, %form, %form_o);
@@ -127,6 +125,7 @@ else {
 sub formwrite {
     my $ident = shift;
     
+    no warnings 'redefine';
     eval $form{$ident};
     if ($@) { require Carp; Carp::croak $@; }
     write;
