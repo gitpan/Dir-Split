@@ -16,7 +16,7 @@ SCRIPTS
 
 bin/split.pl
 
-Interface to Dir::Split that contains predefined options
+Interface to Dir::Split that splits directories
 and evaluates return codes & debug data.
 
 LICENSE

@@ -20,4 +20,4 @@ BEGIN {
 
 $tmp_dir = File::Temp::tmpnam();
 ok(mkpath($tmp_dir, 0), 'mkpath();');
-rmtree $tmp_dir,0,0 or die "Could not remove temp dir $tmp_dir: $!";
+rmtree $tmp_dir, 0, 0 or die "Could not remove temp dir $tmp_dir: $!";

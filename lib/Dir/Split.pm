@@ -1,4 +1,4 @@
-# $Id: Split.pm,v 0.63 2004/01/19 09:58:57 sts Exp $
+# $Id: Split.pm,v 0.64 2004/01/19 09:58:57 sts Exp $
 
 package Dir::Split;
 
@@ -7,9 +7,9 @@ use base qw(Exporter);
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.63';
+our $VERSION = '0.64';
 
-our @EXPORT_OK = q(split_dir);
+our @EXPORT_OK = qw(split_dir);
 
 use File::Basename;
 use File::Copy 'cp';
@@ -18,17 +18,18 @@ use File::Path;
 use File::Spec;
 use SelfLoader;
 
-our (# external data
+our (# external opts
+        $Traverse,
+        $Traverse_unlink,
+        $Traverse_rmdir,
+	
+     # external data
         @exists,
         %failure,
         %track,
 
-        $Traverse,
-        $Traverse_unlink,
-        $Traverse_rmdir,
-
      # return
-        $ret_status,
+        $ret_state,
 
      # data
         %o,
@@ -39,10 +40,10 @@ our (# external data
         $suffix,
 );
 
-sub ACTION { 1 }
-sub NO_ACTION { 0 }
-sub EXISTS { -1 }
-sub FAILURE { -2 }
+sub ACTION    {  1 }
+sub NO_ACTION {  0 }
+sub EXISTS    { -1 }
+sub FAILURE   { -2 }
 
 sub croak {
     require Carp;
@@ -53,13 +54,13 @@ sub split_dir {
     local %o = _tie_var(@_);
     undef @_;
 
-    local ($ret_status, @dirs, @files);
+    local ($ret_state, @dirs, @files);
 
     _sanity_input();
     _gather_files();
 
     if (@files) {
-        $ret_status = ACTION;
+        $ret_state = ACTION;
 	
 	local (%f_names_char, $path, $suffix, $_);
         
@@ -68,11 +69,11 @@ sub split_dir {
         _move();
         _traversed_rmdir() if $Traverse;
 
-        $ret_status = FAILURE if %failure;
+        $ret_state = FAILURE if %failure;
     }
-    else { $ret_status = NO_ACTION }
+    else { $ret_state = NO_ACTION }
 
-    return $ret_status;
+    return $ret_state;
 }
 
 sub _tie_var {
@@ -165,7 +166,7 @@ sub _gather_files {
         _traverse(\@dirs, \@files);
     }
     else {
-        _dir_read($o{source}, \@files);
+        _read_dir(\@files, $o{source});
         @files = grep !-d File::Spec->catfile($o{source}, $_), @files;
     }
 
@@ -195,12 +196,12 @@ sub _suffix {
 
 sub _suffix_num_contin {
     my @dirs;
-    _dir_read($o{target}, \@dirs);
+    _read_dir(\@dirs, $o{target});
     @dirs = grep -d File::Spec->catfile($o{target}, $_), @dirs;
 
     $suffix = 0;
     my $sep = quotemeta $o{sep};
-    foreach (@dirs) {
+    for (@dirs) {
         # extract exist. identifier
 	my $suff_cmp;
         ($_, $suff_cmp) = /(.+?)$sep(.*)/;
@@ -219,7 +220,7 @@ sub _suffix_num_sum_up {
 }
 
 sub _suffix_char {
-    foreach my $file (@files) {
+    for my $file (@files) {
         $_ = $Traverse ? basename($file) : $file;
         s/\s//g if /\s/; # whitespaces
         ($_) = /^(.{$o{length}})/;
@@ -235,7 +236,7 @@ sub _move {
     $track{target}{dirs} = 0;
     $track{target}{files} = 0;
 
-    &{"_move_$o{mode}"};
+    &{"_move_$o{mode}"}();
 }
 
 sub _move_num {
@@ -250,7 +251,7 @@ sub _move_num {
 }
 
 sub _move_char {
-    foreach (sort keys %f_names_char) {
+    for (sort keys %f_names_char) {
         _mkpath(\$_);
 
         while (my $file = shift @{$f_names_char{$_}}) {
@@ -259,13 +260,14 @@ sub _move_char {
     }
 }
 
-sub _dir_read {
-    my ($dir, $files) = @_;
+sub _read_dir {
+    my ($items, $dir) = @_;
 
+    local *D;
     opendir D, $dir
-      or croak qq~Could not open dir $dir for read-access: $!~;
-    @$files = readdir D; splice @$files,0,2;
-    closedir D or croak qq~Could not close dir $dir: $!~;
+      or croak qq~couldn't open dir $dir for read-access: $!~;
+    @$items = readdir D; splice @$items, 0, 2;
+    closedir D or croak qq~couldn't close dir $dir: $!~;
 }
 
 sub _mkpath {
@@ -275,7 +277,7 @@ sub _mkpath {
 
     return if -e $path;
     mkpath $path, $o{verbose}
-      or croak qq~Dir $path could not be created: $!~;
+      or croak qq~dir $path could not be created: $!~;
 
     $track{target}{dirs}++;
 }
@@ -317,7 +319,7 @@ sub _exists_and_not_override {
     my $path = $_[0];
 
     if (-e $$path && !$o{override}) {
-        $ret_status = EXISTS;
+        $ret_state = EXISTS;
         return 1;
     }
 
@@ -350,7 +352,7 @@ sub _traverse {
 
 sub _traversed_rmdir {
     if ($Traverse_rmdir && $Traverse_unlink) {
-        foreach (@dirs) { 
+        for (@dirs) { 
 	    rmtree $_,1,1;
 	}
     }
@@ -364,7 +366,7 @@ Dir::Split - split files of a directory to subdirectories.
 
 =head1 SYNOPSIS
 
- use Dir::Split q(split_dir);
+ use Dir::Split qw(split_dir);
 
  $return = split_dir(
      mode    =>    'num',
@@ -408,9 +410,7 @@ splitting tries to keep up the contentual recognition of data.
 
 =head2 split_dir
 
-Split files to subdirectories.
-
-The key / value pairs may directly be dumped to the function.
+Splits files to subdirectories.
 
  $return = split_dir(
      mode    =>    'num',

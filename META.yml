@@ -3,11 +3,11 @@ module_name: Dir-Split
 dist_version_from: lib/Dir/Split.pm
 installdirs: site
 requires:
-    File::Basename:                0
-    File::Copy:                    0
-    File::Find:                    0
-    File::Path:                    0
-    File::Spec:                    0
+    File::Basename: 0
+    File::Copy:     0
+    File::Find:     0
+    File::Path:     0
+    File::Spec:     0
 distribution_type: module
 license: perl
 dist_abstract: split files of a directory to subdirectories.

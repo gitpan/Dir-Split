@@ -9,7 +9,7 @@
 use strict 'vars';
 use warnings;
 
-use Dir::Split q(split_dir);
+use Dir::Split qw(split_dir);
 
 our ($return, %num_options, %char_options, %form, %form_o);
 
@@ -79,7 +79,7 @@ elsif ($return == -1) {
      
     formwrite('start_debug');
 
-    foreach (@Dir::Split::exists) {
+    for (@Dir::Split::exists) {
         print "file:\t$_\n";
     }
     
@@ -96,7 +96,7 @@ elsif ($return == -2) {
 	
         formwrite('start_debug');
 
-        foreach (@Dir::Split::exists) {
+        for (@Dir::Split::exists) {
             print "file:\t$_\n";
         }
 	
@@ -107,10 +107,10 @@ elsif ($return == -2) {
     $form_o{ul} = '-' x length $form_o{header};
     formwrite('start_debug');
     
-    foreach (@{$Dir::Split::failure{copy}}) {
+    for (@{$Dir::Split::failure{copy}}) {
         print "copy failed:\t$_\n";
     }
-    foreach (@{$Dir::Split::failure{unlink}}) {
+    for (@{$Dir::Split::failure{unlink}}) {
         print "unlink failed:\t$_\n";
     }
     
