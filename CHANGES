@@ -1,6 +1,6 @@
 Revision history for Perl extension Dir::Split.
 
-0.42 2003/01/0x
+0.42 2003/01/05
  - the constructor new() accepts either
    a hash ref or a hash dump.
 
