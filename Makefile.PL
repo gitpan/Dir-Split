@@ -2,16 +2,17 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    NAME         => 'Dir::Split',
+    NAME => 'Dir::Split',
     VERSION_FROM => 'lib/Dir/Split.pm', # finds $VERSION
-    PREREQ_PM    => { Carp           => 0,
-                      File::Basename => 0,
-                      File::Copy     => 0,
-		      File::Find     => 0,
-                      File::Path     => 0,
-                      File::Spec     => 0,
-		      SelfLoader     => 0 },
+    PREREQ_PM => { Carp           => 0,
+                   File::Basename => 0,
+                   File::Copy     => 0,
+		   File::Find     => 0,
+                   File::Path     => 0,
+                   File::Spec     => 0,
+		   SelfLoader     => 0 },
+    PL_FILES => {},
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005 
        (ABSTRACT_FROM => 'lib/Dir/Split.pm',
-        AUTHOR        => 'Steven Schubiger <schubiger@cpan.org>') : ()),
+        AUTHOR => 'Steven Schubiger <steven@accognoscere.org>') : ()),
 );

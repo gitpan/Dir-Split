@@ -1,4 +1,5 @@
 bin/split.pl
+Build.PL
 Changes
 lib/Dir/Split.pm
 Makefile.PL

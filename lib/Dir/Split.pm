@@ -1,6 +1,6 @@
 package Dir::Split;
 
-$VERSION = '0.75';
+$VERSION = '0.76';
 @EXPORT = qw(
     $NOACTION
     $ACTION

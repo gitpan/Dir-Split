@@ -16,5 +16,5 @@ BEGIN {
 }
 
 my $tmpdir = File::Temp::tmpnam();
-ok(mkpath($tmpdir, 0), 'mkpath();' );
+ok(mkpath($tmpdir, 0), 'mkpath();');
 rmtree($tmpdir, 0, 0) or die "Couldn't remove tmpdir $tmpdir: $!";
