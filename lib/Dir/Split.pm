@@ -1,6 +1,6 @@
 package Dir::Split;
 
-$VERSION = '0.69';
+$VERSION = '0.70';
 @EXPORT_OK = qw(split_dir);
 
 use strict 'vars';
@@ -35,7 +35,8 @@ sub EXISTS    { -1 }
 sub FAILURE   { -2 }
 
 sub split_dir {
-    local $o = &_assign_var; undef @_; 
+    local $o = &_assign_var; 
+    undef @_; 
     
     local(@dirs, @files);
 
@@ -82,71 +83,69 @@ sub _assign_var {
 };
 
 sub _sanity_input {
-    my %err_msg = (  
-       mode       =>    'No mode supplied.',
-       source     =>    'No source dir supplied.',
-       target     =>    'No target dir supplied.',
-       verbose    =>    'No verbosity supplied.',
-       override   =>    'No override mode supplied.',
-       ident      =>    'No subdir identifier supplied.',
-       sep        =>    'No suffix separator supplied.',
-       length     =>    'No suffix length supplied.',
-       f_limit    =>    'No file limit supplied.',
-       f_sort     =>    'No file sort mode supplied.',
-       num_contin =>    'No continuation mode supplied.',
-       case       =>    'No suffix case mode supplied.',
+    my %err_msg = ( 
+        _prefix    =>                   'No ',
+        _suffix    =>            ' supplied.', 
+        
+        mode       =>                  'mode',
+        source     =>            'source dir',
+        target     =>            'target dir',
+        verbose    =>             'verbosity',
+        override   =>         'override mode',
+        ident      =>     'subdir identifier',
+        sep        =>      'suffix separator',
+        length     =>         'suffix length',
+        f_limit    =>            'file limit',
+        f_sort     =>        'file sort mode',
+        num_contin =>     'continuation mode',
+        case       =>      'suffix case mode',
     );
-    
-    my $err_input;
-    {    
-        no warnings;
+       
+    my %generic = (
+        mode       =>        '^(?:num|char)$',
+        source     =>               'defined',
+        target     =>               'defined',
+        verbose    =>               '^[0-1]$',
+        override   =>               '^[0-1]$',
+        ident      =>                    '\w',
+	sep        =>               'defined',
+	length     =>                   '> 0',
+    );
 	
-        # generic opts
-        unless ($o->{mode} =~ /^(?: num|char)$/x) {
-            $err_input = $err_msg{mode}; last;
-        }
-        unless ($o->{source}) {
-            $err_input = $err_msg{source}; last;
-        }
-        unless ($o->{target}) {
-            $err_input = $err_msg{target}; last;
-        }
-        unless ($o->{verbose} =~ /^[0-1]$/) {
-            $err_input = $err_msg{verbose}; last;
-        }
-        unless ($o->{override} =~ /^[0-1]$/) {
-            $err_input = $err_msg{override}; last;
-        }
-        unless ($o->{ident} =~ /\w/) {
-            $err_input = $err_msg{ident}; last;
-        }
-        unless ($o->{sep}) {
-            $err_input = $err_msg{sep}; last;
-        }
-        unless ($o->{length} > 0) {
-            $err_input = $err_msg{length}; last;
-        }
-        # num opts
-        if ($o->{mode} eq 'num') {
-            unless ($o->{f_limit} > 0) {
-                $err_input = $err_msg{f_limit}; last;
-            }
-            unless ($o->{f_sort} =~ /^[+-]$/) {
-                $err_input = $err_msg{f_sort}; last;
-            }
-            unless ($o->{num_contin} =~ /^[0-1]$/) {
-                $err_input = $err_msg{num_contin}; last;
-            }
-        }
-        # char opts
-        else {
-            unless ($o->{case} =~ /^(?: lower|upper)$/x) {
-                $err_input = $err_msg{case}; last;
-            }
-        }
+    my %num = (
+        f_limit    =>                   '> 0',
+        f_sort     =>                '^[+-]$',
+	num_contin =>               '^[0-1]$',
+    );
+	
+    my %char = (
+        case       =>     '^(?:lower|upper)$',
+    ); 
+    
+    _validate_input(\%generic, \%err_msg);
+	
+    if ($o->{mode} eq 'num') {
+        _validate_input(\%num, \%err_msg);
     }
-    croak $err_input if $err_input;
+    else {
+        _validate_input(\%char, \%err_msg);
+    }
 }
+
+sub _validate_input {
+    my($args, $err_msg) = @_;
+    
+    while (my($arg, $value) = each %$args) {
+        my $condition = "\$o->{$arg}";
+	    
+	if ($value ne 'defined' && $value !~ /\d+$/) {
+	    $condition .= " =~ /$value/";
+	}          
+        croak @$err_msg{_prefix, $arg, _suffix}
+          unless (eval $condition);
+    }
+}    
+    
 
 sub _gather_files {
     if ($Traverse) {
@@ -191,17 +190,14 @@ sub _suffix_num_contin {
     # Leave files behind as we need to evaluate names of subdirs.
     @dirs = grep { -d File::Spec->catfile($o->{target}, $_) } @dirs;
 
-    local $_;
     $suffix = 0;
       
-    for (@dirs) {
-        # Extract existing 
-	# identifiers and suffixes.
-        my($ident_cmp, $suff_cmp) = /(.+) \Q$o->{sep}\E (.*)/ox;
+    for my $dir (@dirs) {
+        # Extract existing identifiers and suffixes.
+        my($ident_cmp, $suff_cmp) = $dir =~ /(.+) \Q$o->{sep}\E (.*)/ox;    
 	
-	# Search for the highest numerical 
-	# suffix of given identifier in order to avoid 
-	# directory name collision.
+	# Search for the highest numerical suffix of given identifier 
+	# in order to avoid directory name collision.
         if ($o->{ident} eq $ident_cmp && $suff_cmp =~ /[0-9]/o) {
             $suffix = $suff_cmp if ($suff_cmp > $suffix);
         }
@@ -219,19 +215,19 @@ sub _suffix_num_sum_up {
 }
 
 sub _suffix_char {
-    local $_;
-    # $_ represents the suffix.
-    
     while (my $file = shift @files) {
-        $_ = $Traverse 
-	  ? basename($file) : $file;  
-        s/\s//g;                
-        s/^(.{ $o->{length} })/$1/ox;
-        if ($_ =~ /\w/) {
-            $_ = $o->{case} eq 'lower' 
-	      ? lc : uc;
+        my $suffix = $Traverse 
+	  ? basename($file) 
+	  : $file; 
+	   
+        $suffix =~ s/\s//g;                
+        $suffix =~ s/^(.{ $o->{length} })/$1/ox;
+	
+        if ($suffix =~ /\w/) {
+            $suffix = $o->{case} eq 'lower' 
+	      ? lc($suffix) : uc($suffix);
         }
-        push @{$files{$_}}, $file;
+        push @{$files{$suffix}}, $file;
     }
 }
 
@@ -334,9 +330,12 @@ sub _read_dir {
     
     local *DIR;
     
-    opendir DIR, $dir
+    opendir DIR, $dir 
       or croak "Couldn't open dir $dir: $!";
-    @$items = readdir DIR; splice(@$items, 0, 2);
+      
+    @$items = readdir DIR; 
+    splice(@$items, 0, 2);
+    
     closedir DIR 
       or croak "Couldn't close dir $dir: $!";
 }
