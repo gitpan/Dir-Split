@@ -1,0 +1,7 @@
+CHANGES
+MANIFEST
+META.yml
+Makefile.PL
+README
+lib/Dir/Split.pm
+t/test.t

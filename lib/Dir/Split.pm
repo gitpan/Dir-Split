@@ -1,10 +1,10 @@
 #============================================================================
 #
-# Dir::Split module
+# Dir::Split extension
 #
 # Splits the files of a directory to subdirectories.
 #
-# $Id: Split.pm,v 0.03 2003/12/25 00:20:03 st.schubiger Exp $
+# $Id: Split.pm,v 0.03.1 2003/12/25 13:44:53 st.schubiger Exp $
 #
 #============================================================================
 
@@ -25,7 +25,7 @@ our ($hash_opt_ref,
      $suffix_sep);
 
 CONSTANTS: {
-    $VERSION = 0.02;
+    $VERSION = 0.03.1;
 }
 
 MODULES: {
@@ -112,7 +112,7 @@ sub split {
 #-----------------------------------------------------
 # _eval_files (\@files)
 #
-# Internally used by &split to read the files the
+# Internally called by split() to read the files the
 # source directory consists of, to sort them according
 # to the options (lowercase filenames) and transform
 # the relative paths to absolute ones.
@@ -139,13 +139,13 @@ sub _eval_files {
     @{$array_files_ref} = @files;
 }
 
-#---------------------------------------------------
+#-----------------------------------------------------
 # _eval_suffix_highest_number (\$suffix)
 #
-# Internally used by &split to evaluate the highest
+# Internally called by split() to evaluate the highest
 # existing subdir suffix number in order to continue
 # numbering where it stopped previously.
-#---------------------------------------------------
+#-----------------------------------------------------
 
 sub _eval_suffix_highest_number {
     my ($self, $scalar_suffix_ref) = @_;
@@ -171,13 +171,13 @@ sub _eval_suffix_highest_number {
     ${$scalar_suffix_ref} = $i;
 }
 
-#------------------------------------------------
+#--------------------------------------------------
 # _eval_suffix_sum_up (\$suffix)
 #
-# Internally used by &split to sum up the suffix
+# Internally called by split() to sum up the suffix
 # with a given amount of zeros and to concatenate
 # the numbering at the end.
-#------------------------------------------------
+#--------------------------------------------------
 
 sub _eval_suffix_sum_up {
     my ($self, $scalar_suffix_ref) = @_;
