@@ -1,4 +1,4 @@
-# $Id: Split.pm,v 0.55 2004/01/13 19:39:16 sts Exp $
+# $Id: Split.pm,v 0.56 2004/01/13 19:39:16 sts Exp $
 
 package Dir::Split;
 
@@ -6,7 +6,7 @@ use 5.006;
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.55';
+our $VERSION = '0.56';
 
 use File::Basename;
 use File::Copy 'cp';

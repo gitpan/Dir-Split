@@ -23,5 +23,5 @@ BEGIN {
 
 isa_ok($obj, $PACKAGE);
 
-ok(mkpath($tmp_dir, 0), 'mkpath');
+ok(mkpath($tmp_dir, 0), 'mkpath();');
 rmtree($tmp_dir, 0, 0) or die "Could not remove temp dir $tmp_dir: $!";
