@@ -68,7 +68,7 @@ my %char_options = (
 
 
 
-# END OF CONFIG
+# End of config
 ###############
 
 # action
@@ -84,7 +84,7 @@ elsif ($return == -1) {
     local %Form_opt;
 
     $Form_opt{header} = 'EXISTS';
-    $Form_opt{ul} = '-' x length( $Form_opt{header} );
+    $Form_opt{ul} = '-' x length $Form_opt{header};
      
     formwrite( 'start_debug' );
 
@@ -101,7 +101,7 @@ elsif ($return == -2) {
 
     if (@Dir::Split::exists) {
         $Form_opt{header} = 'EXISTS';
-        $Form_opt{ul} = '-' x length( $Form_opt{header} );
+        $Form_opt{ul} = '-' x length $Form_opt{header};
 	
         formwrite( 'start_debug' );
 
@@ -113,14 +113,14 @@ elsif ($return == -2) {
     }
     
     $Form_opt{header} = 'FAILURE';
-    $Form_opt{ul} = '-' x length( $Form_opt{header} );
+    $Form_opt{ul} = '-' x length $Form_opt{header};
     
     formwrite( 'start_debug' );
     
-    for my $file (@{ $Dir::Split::failure{copy} }) {
+    for my $file (@{$Dir::Split::failure{copy}}) {
         print "copy failed:\t$file\n";
     }
-    for my $file (@{ $Dir::Split::failure{unlink} }) {
+    for my $file (@{$Dir::Split::failure{unlink}}) {
         print "unlink failed:\t$file\n";
     }
     
@@ -129,7 +129,7 @@ elsif ($return == -2) {
 }
 # no config
 else {
-    print __FILE__." requires adjustment.\n";
+    print __FILE__." requires adjustment\n";
 }
 
 sub formwrite {

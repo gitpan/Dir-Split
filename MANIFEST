@@ -1,5 +1,5 @@
 bin/split.pl
-CHANGES
+Changes
 lib/Dir/Split.pm
 Makefile.PL
 MANIFEST			This list of files

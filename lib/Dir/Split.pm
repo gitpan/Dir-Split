@@ -1,6 +1,6 @@
 package Dir::Split;
 
-$VERSION = '0.71';
+$VERSION = '0.72';
 @EXPORT_OK = qw(split_dir);
 
 use strict 'vars';
@@ -13,26 +13,24 @@ use File::Path;
 use File::Spec;
 use SelfLoader;
 
-our (
-    $Traverse,           # external options
-    $Traverse_unlink,    
-    $Traverse_rmdir,
+our ($Traverse,           # external options
+     $Traverse_unlink,    
+     $Traverse_rmdir,
 
-    @exists,             # external data
-    %failure,
-    %track,
+     @exists,             # external data
+     %failure,
+     %track,
 
-    %o,                  # Declarations due to 
-    @Dirs,               # the behavior of local().
-    @Files,
-    %Files,
-    $Suffix,
-);
+     %o,                  # Declarations due to 
+     @Dirs,               # the behavior of local().
+     @Files,
+     %Files,
+     $Suffix);
 
-sub NO_ACTION {  0 }
-sub ACTION    {  1 }
-sub EXISTS    { -1 }
-sub FAILURE   { -2 }
+sub NO_ACTION () {  0 }
+sub ACTION    () {  1 }
+sub EXISTS    () { -1 }
+sub FAILURE   () { -2 }
 
 sub split_dir {
     local %o = @_; 
@@ -95,12 +93,15 @@ sub _validate_input {
     
     while (my ($arg, $prove) = each %$args) {
         my $condition = "\$o{$arg}";
-	    
+	   
 	if ($prove ne 'defined' && $prove !~ /\d+$/) {
 	    $condition .= " =~ /$prove/";
-	}          
+	}
+	my $match = eval "sub { $condition }" 
+	  or die "Couldn't compile $condition: $@";
+	       
         croak( 'Option ', $arg, ' not defined or invalid' ) 
-	  unless (eval $condition);
+	  unless (&$match);
     }
 }    
     
@@ -122,11 +123,11 @@ sub _sort_files {
     my $cmp = 
       $Traverse 
         ? $o{file_sort} eq '+' 
-	  ? 'lc( basename( $a ) ) cmp lc( basename( $b ) )'
-	  : 'lc( basename( $b ) ) cmp lc( basename( $a ) )'
+	  ? 'lc basename( $a ) cmp lc basename( $b )'
+	  : 'lc basename( $b ) cmp lc basename( $a )'
 	: $o{file_sort} eq '+'
-	  ? 'lc( $a ) cmp lc( $b )'
-	  : 'lc( $b ) cmp lc( $a )';
+	  ? 'lc $a cmp lc $b'
+	  : 'lc $b cmp lc $a';
 	  
     @Files = sort { eval $cmp } @Files;
 }
@@ -165,7 +166,7 @@ sub _suffix_num_sum_up {
     # set to 1, otherwise increment.
     $Suffix++;
     
-    if (length( $Suffix ) < $o{length}) {
+    if (length $Suffix < $o{length}) {
         $Suffix = sprintf( "%0.$o{length}".'d', $Suffix );
     }
 }
@@ -175,15 +176,15 @@ sub _suffix_char {
         my $suffix = $Traverse 
 	  ? basename( $file ) 
 	  : $file; 
-	   
-        $suffix =~ s/\s//g;                
+
+	$suffix =~ s/\s//g;
         $suffix =~ s/^(.{ $o{length} })/$1/ox;
 	
         if ($suffix =~ /\w/) {
             $suffix = $o{case} eq 'lower' 
-	      ? lc( $suffix ) : uc( $suffix );
+	      ? lc $suffix : uc $suffix;
         }
-        push @{ $Files{$suffix} }, $file;
+        push @{$Files{$suffix}}, $file;
     }
 }
 
@@ -210,7 +211,7 @@ sub _move_char {
     for my $suffix (sort keys %Files) {
         my $target_path = _mkpath( $suffix );
 
-	while (my $file = shift @{ $Files{$suffix} }) {
+	while (my $file = shift @{$Files{$suffix}}) {
             _copy_unlink( $file, $target_path );
         }
     }
@@ -259,7 +260,7 @@ sub _copy {
     }
     
     if (not (copy $source_file, $target_file)) {
-        push @{ $failure{copy} }, $target_file;
+        push @{$failure{copy}}, $target_file;
         return 0;    
     }
     else { return 1 }
@@ -272,7 +273,7 @@ sub _unlink {
         return unless $Traverse_unlink;
     }            
     unless (unlink $source_file) {
-        push @{ $failure{unlink} }, $source_file;
+        push @{$failure{unlink}}, $source_file;
     }
 }
 
@@ -655,11 +656,11 @@ If C<split_dir()> returns a FAILURE, this most often implys that the B<override>
 and existing files could not be overriden. Files that could not be copied / unlinked,
 will have their paths appearing in the according keys in C<%Dir::Split::failure>.
 
- file    @{ $Dir::Split::failure{copy} }      # files that couldn't be copied,
-                                              # most often on overriding failures.
+ file    @{$Dir::Split::failure{copy}}      # files that couldn't be copied,
+                                            # most often on overriding failures.
 
-         @{ $Dir::Split::failure{unlink} }    # files that could be copied but not unlinked,
-                                              # rather seldom.
+         @{$Dir::Split::failure{unlink}}    # files that could be copied but not unlinked,
+                                            # rather seldom.
 
 It is recommended to evaluate those arrays on FAILURE.
 
