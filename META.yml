@@ -10,6 +10,6 @@ requires:
     File::Temp:                    0
     Test::More:                    0
 distribution_type: module
-license: artistic
+license: perl
 dist_abstract: Split the files of a directory to subdirectories.
 dist_author: Steven Schubiger

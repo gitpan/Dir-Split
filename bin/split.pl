@@ -6,7 +6,12 @@ use Dir::Split;
 # committed.
 #
 # Source & target dir vars might require some adjustment.
-#
+# 
+
+
+#%Dir::Split::Warn = ( file => "exists (d)\t",
+#                      dir  => "exists (f)\t",
+#);
 
 %num_behavior = (  mode    =>    'num',
 
@@ -20,7 +25,7 @@ use Dir::Split;
                                  file_sort      =>         '+',
                    },
 
-                   suffix  => {  continue_num   =>         'y',
+                   suffix  => {  continue_num   =>         'n',
                                  separator      =>         '-',
                                  length         =>           5,
                    },
