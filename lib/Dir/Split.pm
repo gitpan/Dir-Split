@@ -1,12 +1,15 @@
-# $Id: Split.pm,v 0.57 2004/01/13 19:39:16 sts Exp $
+# $Id: Split.pm,v 0.58 2004/01/16 10:12:29 sts Exp $
 
 package Dir::Split;
 
 use 5.006;
+use base (Exporter);
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.57';
+our $VERSION = '0.58';
+
+our @EXPORT_OK = qw(split_dir);
 
 use File::Basename;
 use File::Copy 'cp';
@@ -28,11 +31,11 @@ our (# external data
         $Ret_status,
 
      # data
+        %o,
         @Dirs,
         @Files,
-        %F_names_case,
         %F_names_char,
-        $Path,
+	$Path,
         $Suffix,
 );
 
@@ -52,30 +55,27 @@ Dir::Split - split files of a directory to subdirectories.
 
 =head1 SYNOPSIS
 
- use Dir::Split;
+ use Dir::Split q/split_dir/;
 
- %options = (   mode    =>    'num',
+ %options = (  mode    =>    'num',
 
-                source  =>    '/source',
-                target  =>    '/target',
+               source  =>    '/source',
+               target  =>    '/target',
 
-                options => {  verbose      =>         1,
-                              override     =>         0,
-                },
-                sub_dir => {  identifier   =>     'sub',
-                              file_limit   =>         2,
-                              file_sort    =>       '+',
-                },
-                suffix  => {  separator    =>       '-',
-                              continue     =>         1,
-                              length       =>         5,
-                },
+               options => {  verbose      =>         1,
+                             override     =>         0,
+               },
+               sub_dir => {  identifier   =>     'sub',
+                             file_limit   =>         2,
+                             file_sort    =>       '+',
+               },
+               suffix  => {  separator    =>       '-',
+                             continue     =>         1,
+                             length       =>         5,
+               },
  );
 
-
- $dir = Dir::Split->new (\%options);
-
- $return = $dir->split();
+ $return = split_dir(\%options);
 
 =head1 DESCRIPTION
 
@@ -94,18 +94,22 @@ Characteristic splitting allows indexing by using leading characters of filename
 While numeric splitting is being characterised by dividing file amounts, characteristic
 splitting tries to keep up the contentual recognition of data.
 
-=head1 CONSTRUCTOR
+=cut
 
-=head2 new
+=head1 FUNCTIONS
 
-Creates an object. The key / value pairs may be supplied as
-hash reference or directly dumped to the constructor.
+=head2 split_dir
 
- $dir = Dir::Split->new (\%options);
+Split files to subdirectories.
 
+The key / value pairs may be supplied as
+hash reference or directly dumped to the function.
+
+ $return = split_dir(\%options);
+ 
  or
-
- $dir = Dir::Split->new (
+ 
+ $return = split_dir(
       mode    =>    'num',
 
       source  =>    '/source',
@@ -123,23 +127,67 @@ hash reference or directly dumped to the constructor.
                     length       =>         5,
       },
  );
+ 
+ 
+
+It is of tremendous importance to notice that checking the return code is a B<must>.
+Leaving the return code untouched will not allow appropriate gathering of harmless
+debug data (such as existing files) and system operations that failed. C<split_dir()>
+does only report verbose output of mkpath to STDOUT. See B<OPTIONS / debug> on how to
+become aware of existing files and failed system operations (I<copy> & I<unlink>).
+
+B<RETURN CODES>
+
+=over 4
+
+=item (1)
+
+Files moved successfully.
+
+=item (0)
+
+No action.
+
+=item (-1)
+
+Exists.
+
+I<(see OPTIONS / debug / existing)>
+
+=item (-2)
+
+Failure.
+
+I<(see OPTIONS / debug / failures)>
+
+=back
 
 =cut
 
-sub new {
-    my $pkg = shift;
+sub split_dir {
+    local %o = _tie_var(@_);
 
-    my $class = ref $pkg || $pkg;
+    local ($Ret_status, @Dirs, @Files);
 
-    if (ref $_[0]) { return bless _tie_var($_[0]), $class }
-    else { return bless _tie_var(@_), $class }
+    _sanity_input();
+    _gather_files();
+
+    if (@Files) {
+        $Ret_status = ACTION;
+	
+	local (%F_names_char, $Path, $Suffix, $_);
+        
+        _sort_files() if $o{mode} eq 'num';
+        _suffix();
+        _move();
+        _traversed_rmdir() if $Traverse;
+
+        $Ret_status = FAILURE if %failure;
+    }
+    else { $Ret_status = NO_ACTION }
+
+    return $Ret_status;
 }
-
-#
-# _tie_var (\%hash | %hash)
-#
-# ``Ties" class data as in %assign.
-#
 
 sub _tie_var {
     my (%assign, %assigned);
@@ -188,86 +236,10 @@ sub _tie_var {
         }
     }
 
-    return \%assigned;
+    return %assigned;
 };
 
-=head1 METHODS
-
-=head2 split
-
-Split files to subdirectories.
-
- $return = $dir->split();
-
-It is of tremendous importance to notice that checking the return code is a B<must>.
-Leaving the return code untouched will not allow appropriate gathering of harmless
-debug data (such as existing files) and system operations that failed. C<Dir::Split>
-does only report verbose output of mkpath to STDOUT. See B<OPTIONS / debug> on how to
-become aware of existing files and failed system operations (I<copy> & I<unlink>).
-
-B<RETURN CODES>
-
-=over 4
-
-=item (1)
-
-Files moved successfully.
-
-=item (0)
-
-No action.
-
-=item (-1)
-
-Exists.
-
-I<(see OPTIONS / debug / existing)>
-
-=item (-2)
-
-Failure.
-
-I<(see OPTIONS / debug / failures)>
-
-=back
-
-=cut
-
-sub split {
-    my $o = $_[0];
-
-    $o->_sanity_input();
-    $o->_gather_files();
-
-    # files found, split.
-    if (@Files) {
-        $Ret_status = ACTION;
-
-        # engine
-        $o->_sort_files() if $o->{mode} eq 'num';
-        $o->_suffix();
-        $o->_move();
-        $o->_traversed_rm_dir() if $Traverse;
-
-        $Ret_status = FAILURE if %failure;
-    }
-    # no files? exit.
-    else { $Ret_status = NO_ACTION }
-
-    _clean_up();
-
-    return $Ret_status;
-}
-
-#
-# _sanity_input()
-#
-# Ensures that interface input passes sanity.
-#
-
 sub _sanity_input {
-    my $o = $_[0];
-
     my %err_msg = (  mode        =>    'No mode specified.',
                      source      =>    'No source dir specified.',
                      target      =>    'No target dir specified.',
@@ -286,45 +258,45 @@ sub _sanity_input {
     {   no warnings;
 
         # generic opts
-        unless ($o->{mode} eq 'num' || $o->{mode} eq 'char') {
+        unless ($o{mode} eq 'num' || $o{mode} eq 'char') {
             $err_input = $err_msg{mode}; last;
         }
-        unless ($o->{source}) {
+        unless ($o{source}) {
             $err_input = $err_msg{source}; last;
         }
-        unless ($o->{target}) {
+        unless ($o{target}) {
             $err_input = $err_msg{target}; last;
         }
-        unless ($o->{verbose} =~ /^0|1$/) {
+        unless ($o{verbose} =~ /^0|1$/) {
             $err_input = $err_msg{verbose}; last;
         }
-        unless ($o->{override} =~ /^0|1$/) {
+        unless ($o{override} =~ /^0|1$/) {
             $err_input = $err_msg{override}; last;
         }
-        unless ($o->{ident} =~ /\w/) {
+        unless ($o{ident} =~ /\w/) {
             $err_input = $err_msg{ident}; last;
         }
-        unless ($o->{sep}) {
+        unless ($o{sep}) {
             $err_input = $err_msg{sep}; last;
         }
-        unless ($o->{length} > 0) {
+        unless ($o{length} > 0) {
             $err_input = $err_msg{length}; last;
         }
-        # numeric opts
-        if ($o->{mode} eq 'num') {
-            unless ($o->{f_limit} > 0) {
+        # num opts
+        if ($o{mode} eq 'num') {
+            unless ($o{f_limit} > 0) {
                 $err_input = $err_msg{f_limit}; last;
             }
-            unless ($o->{f_sort} eq '+' || $o->{f_sort} eq '-') {
+            unless ($o{f_sort} eq '+' || $o{f_sort} eq '-') {
                 $err_input = $err_msg{f_sort}; last;
             }
-            unless ($o->{num_contin} =~ /^0|1$/) {
+            unless ($o{num_contin} =~ /^0|1$/) {
                 $err_input = $err_msg{num_contin}; last;
             }
         }
-        # characteristic opts
-        elsif ($o->{mode} eq 'char') {
-            unless ($o->{case} eq 'lower' || $o->{case} eq 'upper') {
+        # char opts
+        else {
+            unless ($o{case} eq 'lower' || $o{case} eq 'upper') {
                 $err_input = $err_msg{case}; last;
             }
         }
@@ -332,194 +304,116 @@ sub _sanity_input {
     croak $err_input if $err_input;
 }
 
-#
-# _gather_files()
-#
-# Gathers files from source.
-#
-
 sub _gather_files {
-    my $o = $_[0];
-
     if ($Traverse) {
-        $o->_traverse(\@Dirs, \@Files);
+        _traverse(\@Dirs, \@Files);
     }
     else {
-        $o->_dir_read($o->{source}, \@Files);
-        @Files = grep !-d File::Spec->catfile($o->{source}, $_), @Files;
+        _dir_read($o{source}, \@Files);
+        @Files = grep !-d File::Spec->catfile($o{source}, $_), @Files;
     }
 
     $track{source}{files} = @Files;
 }
 
-#
-# _sort_files()
-#
-# Sorts files in num mode.
-#
-
 sub _sort_files {
-    my $o = $_[0];
+    my (%F_names, @tmp);
+    # preserve case-sensitive filenames.
+    foreach (@Files) {
+        $F_names{lc $_} = $_;
+    }
+    @tmp = map lc, @Files; @Files = ();
+	
+    my $cmp = 
+      $Traverse 
+        ? $o{f_sort} eq '+'
+          ? 'basename($a) cmp basename($b)'
+	  : 'basename($b) cmp basename($a)'
+	: $o{f_sort} eq '+'
+	  ? '$a cmp $b'
+	  : '$b cmp $a';
 
-    if ($o->{f_sort} eq '+' || $o->{f_sort} eq '-') {
-        # preserve case-sensitive filenames.
-        foreach (@Files) {
-           $F_names_case{lc($_)} = $_;
-        }
-        @Files = map lc, @Files;
-
-        if ($o->{f_sort} eq '+') { @Files = sort @Files }
-        else { @Files = reverse @Files }
+    foreach (sort { eval $cmp } @tmp) {
+        push @Files, $F_names{$_};
     }
 }
-
-#
-# _suffix()
-#
-# Sub handler for suffixes.
-#
 
 sub _suffix {
-    my $o = $_[0];
-
-    if ($o->{mode} eq 'num') {
-        $o->_suffix_num_contin() if $o->{num_contin};
-        $o->_suffix_num_sum_up();
-    } else {
-        $o->_suffix_char();
-    }
+    if ($o{mode} eq 'num') {
+        _suffix_num_contin() if $o{num_contin};
+        _suffix_num_sum_up();
+    } 
+    else { _suffix_char() }
 }
 
-#
-# _suffix_num_contin()
-#
-# Evaluates the highest existing subdir suffix number.
-#
-
 sub _suffix_num_contin {
-    my $o = $_[0];
-
     my @dirs;
-    $o->_dir_read($o->{target}, \@dirs);
-    @dirs = grep -d File::Spec->catfile($o->{target}, $_), @dirs;
+    _dir_read($o{target}, \@dirs);
+    @dirs = grep -d File::Spec->catfile($o{target}, $_), @dirs;
 
-    # surpress warnings
     $Suffix = 0;
-    my $sep = quotemeta $o->{sep};
+    my $sep = quotemeta $o{sep};
     foreach (@dirs) {
         # extract exist. identifier
 	my $suff_cmp;
         ($_, $suff_cmp) = /(.+?)$sep(.*)/;
         # increase suffix to highest number
-        if ($o->{ident} eq $_ && $suff_cmp =~ /[0-9]/o) {
+        if ($o{ident} eq $_ && $suff_cmp =~ /[0-9]/o) {
             $Suffix = $suff_cmp if $suff_cmp > $Suffix;
         }
     }
 }
 
-#
-# _suffix_num_sum_up()
-#
-# Sums the num suffix with zeros up if required.
-#
-
 sub _suffix_num_sum_up {
-    my $o = $_[0];
-
     $Suffix++;
-    if (length $Suffix < $o->{length}) {
-        my $format = "%0.$o->{length}".'d';
-        $Suffix = sprintf $format, $Suffix;
+    if (length $Suffix < $o{length}) {
+        $Suffix = sprintf "%0.$o{length}".'d', $Suffix;
     }
 }
 
-#
-# _suffix_char()
-#
-# Evaluates filenames and stores them
-# in a hash associated with the leading
-# chars of their filenames.
-#
-
 sub _suffix_char {
-    my $o = $_[0];
-
     foreach my $file (@Files) {
-        if ($Traverse) { $_ = basename($file) }
-        else { $_ = $file }
+        $_ = $Traverse ? basename($file) : $file;
         s/\s//g if /\s/; # whitespaces
-        ($_) = /^(.{$o->{length}})/;
+        ($_) = /^(.{$o{length}})/;
         if ($_ =~ /\w/) {
-            if ($o->{case} eq 'lower') { $_ = lc $_ }
-            else { $_ = uc $_ }
+            $_ = $o{case} eq 'lower' ? lc : uc;
         }
         push @{$F_names_char{$_}}, $file;
     }
     undef @Files;
 }
 
-#
-# _move()
-#
-# Sub handler for moving files.
-#
-
 sub _move {
-    my $o = $_[0];
-
-    # initalize tracking
     $track{target}{dirs} = 0;
     $track{target}{files} = 0;
 
-    my $sub_move = "_move_$o->{'mode'}";
-    $o->$sub_move();
+    &{"_move_$o{mode}"};
 }
-
-#
-# _move_num()
-#
-# Moves files to numeric subdirs.
-#
 
 sub _move_num {
-    my $o = $_[0];
-
     for (; @Files; $Suffix++) {
-       $o->_mkpath($Suffix);
+       _mkpath(\$Suffix);
 
-        for (my $i = 0; $i < $o->{f_limit}; $i++) {
-            last unless my $file = shift @Files;
-            $o->_cp_unlink($F_names_case{$file});
+        for (my $i = 0; $i < $o{f_limit} && @Files; $i++) {
+            my $file = shift @Files;
+            _cp_unlink(\$file);
         }
     }
 }
-
-#
-# _move_char()
-#
-# Moves files to characteristic subdirs.
-#
 
 sub _move_char {
-    my $o = $_[0];
-
     foreach (sort keys %F_names_char) {
-        $o->_mkpath($_);
+        _mkpath(\$_);
 
         while (my $file = shift @{$F_names_char{$_}}) {
-            $o->_cp_unlink($file);
+            _cp_unlink(\$file);
         }
     }
 }
 
-#
-# _dir_read (\$dir, \@files)
-#
-# Reads files of a dir.
-#
-
 sub _dir_read {
-    shift; my ($dir, $files) = @_;
+    my ($dir, $files) = @_;
 
     opendir D, $dir
       or croak qq~Could not open dir $dir for read-access: $!~;
@@ -527,50 +421,37 @@ sub _dir_read {
     closedir D or croak qq~Could not close dir $dir: $!~;
 }
 
-#
-# _mkpath ($suffix)
-#
-# Creates subdirs.
-#
-
 sub _mkpath {
-    my ($o, $suffix) = @_;
+    my $suffix = $_[0];
 
-    $Path = File::Spec->catfile($o->{target}, "$o->{ident}$o->{sep}$suffix");
+    $Path = File::Spec->catfile($o{target}, "$o{ident}$o{sep}$$suffix");
 
     return if -e $Path;
-    mkpath $Path, $o->{verbose}
+    mkpath $Path, $o{verbose}
       or croak qq~Dir $Path could not be created: $!~;
 
     $track{target}{dirs}++;
 }
 
-#
-# _cp_unlink ($file)
-#
-# Copies and unlinks files.
-# Upon existing files / failures, debug data.
-#
-
 sub _cp_unlink {
-    my ($o, $file) = @_;
+    my $file = $_[0];
 
-    my $path_target;
+    my $target_path;
     if ($Traverse) {
-        $path_target = File::Spec->catfile($Path, basename($file));
+        $target_path = File::Spec->catfile($Path, basename($$file));
     }
     else {
-        $path_target = File::Spec->catfile($Path, $file);
-        $file = File::Spec->catfile($o->{source}, $file);
+        $target_path = File::Spec->catfile($Path, $$file);
+        $$file = File::Spec->catfile($o{source}, $$file);
     }
 
-    if ($o->_exists_and_not_override($path_target)) {
-        push @exists, $path_target;
+    if (_exists_and_not_override(\$target_path)) {
+        push @exists, $target_path;
         return;
     }
 
-    unless (cp $file, $path_target) {
-        push @{$failure{copy}}, $path_target;
+    unless (cp $$file, $target_path) {
+        push @{$failure{copy}}, $target_path;
         return;
     }
     $track{target}{files}++;
@@ -579,22 +460,16 @@ sub _cp_unlink {
         return unless $Traverse_unlink;
     }
 
-    unless (unlink $file) {
-        push @{$failure{unlink}}, $file;
+    unless (unlink $$file) {
+        push @{$failure{unlink}}, $$file;
         return;
     }
 }
 
-#
-# _exists_and_not_override ($path)
-#
-# Looks out for existing files.
-#
-
 sub _exists_and_not_override {
-    my ($o, $path) = @_;
+    my $path = $_[0];
 
-    if (-e $path && !$o->{override}) {
+    if (-e $$path && !$o{override}) {
         $Ret_status = EXISTS;
         return 1;
     }
@@ -602,61 +477,32 @@ sub _exists_and_not_override {
     return 0;
 }
 
-#
-# _clean_up()
-#
-# Undef non-class data.
-#
-
-sub _clean_up {
-    undef @Dirs;
-    undef @Files;
-    undef %F_names_case;
-    undef %F_names_char;
-    undef $Path;
-    undef $Suffix;
-}
-
 1;
 __DATA__
 
-#
-# _traverse (\@dirs, \@files)
-#
-# Traverses dirs and files.
-#
-
 sub _traverse {
     no strict 'vars';
-    local ($o, $dirs, $files) = @_;
+    local ($dirs, $files) = @_;
 
     my %opts = (  wanted       =>    \&_eval_files,
 	          postprocess  =>     \&_eval_dirs,
     );
 
-    finddepth(\%opts, $o->{source});
+    finddepth(\%opts, $o{source});
     
     sub _eval_files {
-        if (-f $File::Find::name) {
-            push @$files, $File::Find::name;
-        }
+        push @$files, $File::Find::name
+	  if -f $File::Find::name;
     }
 
     sub _eval_dirs {
         push @$dirs, $File::Find::dir 
-	  if $File::Find::dir ne $o->{source};
+	  if $File::Find::dir ne $o{source};
     }    
 }
 
-#
-# _traversed_rm_dir()
-#
-# Removes traversed dirs.
-#
-
-sub _traversed_rm_dir {
-    if ($Traverse_rmdir 
-      && $Traverse_unlink) {
+sub _traversed_rmdir {
+    if ($Traverse_rmdir && $Traverse_unlink) {
         foreach (@Dirs) { 
 	    rmtree($_, 1, 1);
 	}
@@ -873,7 +719,7 @@ Above example: directory consisting 512 files successfully splitted to 128 direc
 
 =head3 existing
 
-If C<split()> returns a EXISTS, this implys that the B<override> option is disabled and
+If C<split_dir()> returns a EXISTS, this implys that the B<override> option is disabled and
 files weren't moved due to existing files within the target subdirectories; they will have
 their paths appearing in C<@Dir::Split::exists>.
 
@@ -882,15 +728,15 @@ their paths appearing in C<@Dir::Split::exists>.
 
 =head3 failures
 
-If C<split()> returns a FAILURE, this most often implys that the B<override> option is enabled
+If C<split_dir()> returns a FAILURE, this most often implys that the B<override> option is enabled
 and existing files could not be overriden. Files that could not be copied / unlinked,
 will have their paths appearing in the according keys in C<%Dir::Split::failure>.
 
- file    @{$Dir::Split::failure{'copy'}}      # files that couldn't be copied,
-                                              # most often on overriding failures.
+ file    @{$Dir::Split::failure{copy}}      # files that couldn't be copied,
+                                            # most often on overriding failures.
 
-         @{$Dir::Split::failure{'unlink'}}    # files that could be copied but not unlinked,
-                                              # rather seldom.
+         @{$Dir::Split::failure{unlink}}    # files that could be copied but not unlinked,
+                                            # rather seldom.
 
 It is recommended to evaluate those arrays on FAILURE.
 
@@ -985,6 +831,10 @@ careful in terms of new inclusions; proposals towards additions
 should be well grounded.
 
 =back
+
+=head1 EXPORT
+
+C<split_dir()> upon request.
 
 =head1 DEPENDENCIES
 

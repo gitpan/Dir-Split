@@ -1,5 +1,9 @@
 Revision history for Perl extension Dir::Split.
 
+0.58 2004/01/16
+ - object constructor removed;
+   functions are exportable.
+
 0.54 2004/01/13
  - File::Find traverses directories.
 

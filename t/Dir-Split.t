@@ -3,17 +3,14 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 3;
 
 use Dir::Split;
 
 use File::Path;
 use File::Temp;
 
-my ($obj, $PACKAGE, $tmp_dir);
-
-$obj = Dir::Split->new({});
-$tmp_dir = File::Temp::tmpnam();
+my ($PACKAGE, $tmp_dir);
 
 BEGIN {
     $PACKAGE = 'Dir::Split';
@@ -21,7 +18,6 @@ BEGIN {
     require_ok($PACKAGE);
 }
 
-isa_ok($obj, $PACKAGE);
-
+$tmp_dir = File::Temp::tmpnam();
 ok(mkpath($tmp_dir, 0), 'mkpath();');
 rmtree($tmp_dir, 0, 0) or die "Could not remove temp dir $tmp_dir: $!";

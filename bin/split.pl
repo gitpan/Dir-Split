@@ -1,22 +1,25 @@
 #!/usr/bin/perl
 
 #
-# Uncomment the lines at the bottom accordingly
-# whether numeric or characteristic splitting shall be
+# Uncomment the lines below accordingly whether 
+# numeric or characteristic splitting shall be
 # committed.
 #
 
 use strict;
 use warnings;
 
-use Dir::Split;
+use Dir::Split q/split_dir/;
 
-my ($return, %num_options, %char_options, $dir);
+my ($return, %num_options, %char_options);
 
 $return = -255;
 
 
 %num_options = (  mode    =>    'num',
+
+                  source  =>    '/source',
+		  target  =>    '/target',
 
                   options => {  verbose     =>           1,
                                 override    =>           0,
@@ -33,6 +36,9 @@ $return = -255;
 
 %char_options = (  mode    =>    'char',
 
+                   source  =>    '/source',
+		   target  =>    '/target',
+
                    options => {  verbose     =>           1,
                                  override    =>           0,
                    },
@@ -46,28 +52,19 @@ $return = -255;
 );
 
 
-# numeric splitting
-#
-#$dir = Dir::Split->new(\%num_options);
-
-# characteristic splitting
-#
-#$dir = Dir::Split->new(\%char_options);
-
-# source and target dir
-#
-#$dir->{source} = '/source';
-#$dir->{target} = '/target';
-
 # traversal mode and options.
 #
 #$Dir::Split::Traverse        = 1;
 #$Dir::Split::Traverse_unlink = 1;
 #$Dir::Split::Traverse_rmdir  = 1;
 
-# split and evaluate the return status.
+# numeric splitting
 #
-#$return = $dir->split();
+#$return = split_dir(\%num_options);
+
+# characteristic splitting
+#
+#$return = split_dir(\%char_options);
 
 # action
 if ($return == 1) {
@@ -153,5 +150,5 @@ Target - dirs : $Dir::Split::track{target}{dirs}
 EOT
 } # no config
 else {
-    print __FILE__." requires some adjustment.\n";
+    print __FILE__." requires adjustment.\n";
 }
