@@ -1,6 +1,6 @@
 package Dir::Split;
 
-$VERSION = '0.67';
+$VERSION = '0.68';
 @EXPORT_OK = qw(split_dir);
 
 use strict 'vars';
@@ -13,25 +13,22 @@ use File::Path;
 use File::Spec;
 use SelfLoader;
 
-our(# external opts
-       $Traverse,
-       $Traverse_unlink,
-       $Traverse_rmdir,
-	
-     # external data
-       @exists,
-       %failure,
-       %track,
+our(
+    $Traverse,           # external options
+    $Traverse_unlink,    
+    $Traverse_rmdir,
 
-     # Declarations due to 
-     # the behavior of local().
-       $o,
-       @dirs,
-       @files,
-       %files,
-       $path,
-       $suffix,
-       $target_path,
+    @exists,             # external data
+    %failure,
+    %track,
+
+    $o,                  # Declarations due to 
+    @dirs,               # the behavior of local().
+    @files,
+    %files,
+    $path,
+    $suffix,
+    $target_path,
 );
 
 sub NO_ACTION {  0 }
@@ -53,13 +50,13 @@ sub split_dir {
 	
 	local(%files, $path, $suffix);
         
-        _sort_files()        if ($o->{mode} eq 'num');
+        _sort_files()           if ($o->{mode} eq 'num');
         _suffix();
         _move();
-	_traversed_rmdir()   if $Traverse && !(@exists || %failure); 
+	_traversed_rmdir()      if $Traverse && !(@exists || %failure); 
 
-        $ret_state = EXISTS  if @exists;
-        $ret_state = FAILURE if %failure;
+        $ret_state = EXISTS     if @exists;
+        $ret_state = FAILURE    if %failure;
     }
     
     return $ret_state;
@@ -106,7 +103,7 @@ sub _sanity_input {
         no warnings;
 	
         # generic opts
-        unless ($o->{mode} =~ /^(?:num|char)$/) {
+        unless ($o->{mode} =~ /^(?: num|char)$/x) {
             $err_input = $err_msg{mode}; last;
         }
         unless ($o->{source}) {
@@ -115,10 +112,10 @@ sub _sanity_input {
         unless ($o->{target}) {
             $err_input = $err_msg{target}; last;
         }
-        unless ($o->{verbose} =~ /^(?:0|1)$/) {
+        unless ($o->{verbose} =~ /^[0-1]$/) {
             $err_input = $err_msg{verbose}; last;
         }
-        unless ($o->{override} =~ /^(?:0|1)$/) {
+        unless ($o->{override} =~ /^[0-1]$/) {
             $err_input = $err_msg{override}; last;
         }
         unless ($o->{ident} =~ /\w/) {
@@ -135,16 +132,16 @@ sub _sanity_input {
             unless ($o->{f_limit} > 0) {
                 $err_input = $err_msg{f_limit}; last;
             }
-            unless ($o->{f_sort} =~ /^(?:\+|-)$/) {
+            unless ($o->{f_sort} =~ /^[+-]$/) {
                 $err_input = $err_msg{f_sort}; last;
             }
-            unless ($o->{num_contin} =~ /^(?:0|1)$/) {
+            unless ($o->{num_contin} =~ /^[0-1]$/) {
                 $err_input = $err_msg{num_contin}; last;
             }
         }
         # char opts
         else {
-            unless ($o->{case} =~ /^(?:lower|upper)$/) {
+            unless ($o->{case} =~ /^(?: lower|upper)$/x) {
                 $err_input = $err_msg{case}; last;
             }
         }
@@ -201,7 +198,7 @@ sub _suffix_num_contin {
     for (@dirs) {
         # Extract existing 
 	# identifiers and suffixes.
-        my($ident_cmp, $suff_cmp) = /(.+?)\Q$o->{sep}\E(.*)/;
+        my($ident_cmp, $suff_cmp) = /(.+) \Q$o->{sep}\E (.*)/ox;
 	
 	# Search for the highest numerical 
 	# suffix of given identifier in order to avoid 
@@ -225,11 +222,12 @@ sub _suffix_num_sum_up {
 sub _suffix_char {
     local $_;
     # $_ represents the suffix.
+    
     while (my $file = shift @files) {
         $_ = $Traverse 
-	  ? basename($file) : $file;
+	  ? basename($file) : $file;  
         s/\s//g;                
-        s/^(.{$o->{length}})/$1/;
+        s/^(.{ $o->{length} })/$1/ox;
         if ($_ =~ /\w/) {
             $_ = $o->{case} eq 'lower' 
 	      ? lc : uc;
@@ -269,7 +267,7 @@ sub _move_char {
 }
 
 sub _mkpath {
-    my $suffix = shift;
+    my($suffix) = @_;
     
     $target_path = File::Spec->catfile
       ($o->{target}, "$o->{ident}$o->{sep}$suffix");
@@ -282,7 +280,7 @@ sub _mkpath {
 }
 
 sub _cp_unlink {
-    my $file = shift;
+    my($file) = @_;
     my($source_file, $target_file);
     
     if ($Traverse) {
@@ -316,7 +314,7 @@ sub _copy {
 }
 
 sub _unlink {
-    my $source_file = shift;
+    my($source_file) = @_;
 
     if ($Traverse) {
         return unless $Traverse_unlink;
@@ -335,6 +333,7 @@ sub _read_dir {
     my($items, $dir) = @_;
     
     local *DIR;
+    
     opendir DIR, $dir
       or croak "Couldn't open dir $dir: $!";
     @$items = readdir DIR; splice(@$items, 0, 2);
@@ -351,7 +350,7 @@ sub _traverse {
 
     my %opts = (  
         wanted      =>    \&_eval_files,
-	postprocess =>     \&_eval_dirs,
+	postprocess =>    \&_eval_dirs,
     );
 
     File::Find::finddepth(\%opts, $o->{source});

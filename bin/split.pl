@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#! /usr/local/bin/perl
 
 use strict;
 use warnings;
@@ -85,8 +85,8 @@ elsif ($return == -1) {
      
     formwrite('start_debug');
 
-    for (@Dir::Split::exists) {
-        print "file:\t$_\n";
+    for my $file (@Dir::Split::exists) {
+        print "file:\t$file\n";
     }
     
     formwrite('end_debug'); 
@@ -102,8 +102,8 @@ elsif ($return == -2) {
 	
         formwrite('start_debug');
 
-        for (@Dir::Split::exists) {
-            print "file:\t$_\n";
+        for my $file (@Dir::Split::exists) {
+            print "file:\t$file\n";
         }
 	
 	formwrite('end_debug');
@@ -114,11 +114,11 @@ elsif ($return == -2) {
     
     formwrite('start_debug');
     
-    for (@{$Dir::Split::failure{copy}}) {
-        print "copy failed:\t$_\n";
+    for my $file (@{$Dir::Split::failure{copy}}) {
+        print "copy failed:\t$file\n";
     }
-    for (@{$Dir::Split::failure{unlink}}) {
-        print "unlink failed:\t$_\n";
+    for my $file (@{$Dir::Split::failure{unlink}}) {
+        print "unlink failed:\t$file\n";
     }
     
     formwrite('end_debug');
@@ -130,7 +130,7 @@ else {
 }
 
 sub formwrite {
-    my $ident = shift;
+    my($ident) = @_;
     
     no warnings 'redefine';
     eval $form{$ident};
