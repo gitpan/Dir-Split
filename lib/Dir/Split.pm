@@ -1,4 +1,4 @@
-# $Id: Split.pm,v 0.56 2004/01/13 19:39:16 sts Exp $
+# $Id: Split.pm,v 0.57 2004/01/13 19:39:16 sts Exp $
 
 package Dir::Split;
 
@@ -6,7 +6,7 @@ use 5.006;
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.56';
+our $VERSION = '0.57';
 
 use File::Basename;
 use File::Copy 'cp';
@@ -519,11 +519,11 @@ sub _move_char {
 #
 
 sub _dir_read {
-    shift; my ($dir, $files_ref) = @_;
+    shift; my ($dir, $files) = @_;
 
     opendir D, $dir
       or croak qq~Could not open dir $dir for read-access: $!~;
-    @$files_ref = readdir D; splice @$files_ref, 0, 2;
+    @$files = readdir D; splice @$files, 0, 2;
     closedir D or croak qq~Could not close dir $dir: $!~;
 }
 
@@ -628,7 +628,7 @@ __DATA__
 
 sub _traverse {
     no strict 'vars';
-    local ($o, $dirs_ref, $files_ref) = @_;
+    local ($o, $dirs, $files) = @_;
 
     my %opts = (  wanted       =>    \&_eval_files,
 	          postprocess  =>     \&_eval_dirs,
@@ -638,12 +638,12 @@ sub _traverse {
     
     sub _eval_files {
         if (-f $File::Find::name) {
-            push @$files_ref, $File::Find::name;
+            push @$files, $File::Find::name;
         }
     }
 
     sub _eval_dirs {
-        push @$dirs_ref, $File::Find::dir 
+        push @$dirs, $File::Find::dir 
 	  if $File::Find::dir ne $o->{source};
     }    
 }
@@ -666,24 +666,6 @@ sub _traversed_rm_dir {
 __END__
 
 =head1 OPTIONS
-
-=head2 type indicators
-
-=over 4
-
-=item (c)
-
-character
-
-=item (i)
-
-integer
-
-=item (s)
-
-string
-
-=back
 
 =head2 numeric
 
@@ -715,19 +697,19 @@ B<options> (mandatory)
 
 =item B<mode>
 
-(s) - I<num> for numeric.
+I<num> for numeric.
 
 =item B<source>
 
-(s) - source directory.
+source directory.
 
 =item B<target>
 
-(s) - target directory.
+target directory.
 
 =item B<options / verbose>
 
-(i) - if enabled, mkpath will output the pathes on creating
+If enabled, mkpath will output the pathes on creating
 subdirectories.
 
  MODES
@@ -736,7 +718,7 @@ subdirectories.
 
 =item B<options / override>
 
-(i) - overriding of existing files.
+overriding of existing files.
 
  MODES
    1  enabled
@@ -744,15 +726,15 @@ subdirectories.
 
 =item B<sub_dir / identifier>
 
-(s) - prefix of each subdirectory created.
+prefix of each subdirectory created.
 
 =item B<sub_dir / file_limit>
 
-(i) - limit of files per subdirectory.
+limit of files per subdirectory.
 
 =item B<sub_dir / file_sort>
 
-(c) - sort order of files.
+sort order of files.
 
  MODES
    +  ascending
@@ -760,11 +742,11 @@ subdirectories.
 
 =item B<suffix / separator>
 
-(s) - suffix separator.
+suffix separator.
 
 =item B<suffix / continue>
 
-(i) - numbering continuation.
+numbering continuation.
 
  MODES
    1  enabled
@@ -777,7 +759,7 @@ may cause interfering with existing files.
 
 =item B<suffix / length>
 
-(i) - character length of the suffix.
+character length of the suffix.
 
 This option will have no effect if its smaller than the current length
 of the highest suffix number.
@@ -814,19 +796,19 @@ B<options> (mandatory)
 
 =item B<mode>
 
-(s) - I<char> for characteristic.
+I<char> for characteristic.
 
 =item B<source>
 
-(s) - source directory.
+source directory.
 
 =item B<target>
 
-(s) - target directory.
+target directory.
 
 =item B<options / verbose>
 
-(i) - if enabled, mkpath will output the pathes on creating
+If enabled, mkpath will output the pathes on creating
 subdirectories.
 
  MODES
@@ -835,7 +817,7 @@ subdirectories.
 
 =item B<options / override>
 
-(i) - overriding of existing files.
+overriding of existing files.
 
  MODES
    1  enabled
@@ -843,15 +825,15 @@ subdirectories.
 
 =item B<sub_dir / identifier>
 
-(s) - prefix of each subdirectory created.
+prefix of each subdirectory created.
 
 =item B<suffix / separator>
 
-(s) - suffix separator.
+suffix separator.
 
 =item B<suffix / case>
 
-(s) - lower/upper case of the suffix.
+lower/upper case of the suffix.
 
  MODES
    lower
@@ -859,7 +841,7 @@ subdirectories.
 
 =item B<suffix / length>
 
-(i) - character length of the suffix.
+character length of the suffix.
 
 < 4 is highly recommended (26 (alphabet) ^ 3 == 17'576 suffix possibilites).
 C<Dir::Split> will not prevent using suffix lengths greater than 3. Imagine
