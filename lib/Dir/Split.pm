@@ -1,4 +1,4 @@
-# $Id: Split.pm,v 0.58 2004/01/16 10:12:29 sts Exp $
+# $Id: Split.pm,v 0.59 2004/01/16 10:12:29 sts Exp $
 
 package Dir::Split;
 
@@ -7,7 +7,7 @@ use base (Exporter);
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.58';
+our $VERSION = '0.59';
 
 our @EXPORT_OK = qw(split_dir);
 
@@ -28,15 +28,15 @@ our (# external data
         $Traverse_rmdir,
 
      # return
-        $Ret_status,
+        $ret_status,
 
      # data
         %o,
-        @Dirs,
-        @Files,
-        %F_names_char,
-	$Path,
-        $Suffix,
+        @dirs,
+        @files,
+        %f_names_char,
+	$path,
+        $suffix,
 );
 
 sub ACTION { 1 }
@@ -167,26 +167,26 @@ I<(see OPTIONS / debug / failures)>
 sub split_dir {
     local %o = _tie_var(@_);
 
-    local ($Ret_status, @Dirs, @Files);
+    local ($ret_status, @dirs, @files);
 
     _sanity_input();
     _gather_files();
 
-    if (@Files) {
-        $Ret_status = ACTION;
+    if (@files) {
+        $ret_status = ACTION;
 	
-	local (%F_names_char, $Path, $Suffix, $_);
+	local (%f_names_char, $path, $suffix, $_);
         
         _sort_files() if $o{mode} eq 'num';
         _suffix();
         _move();
         _traversed_rmdir() if $Traverse;
 
-        $Ret_status = FAILURE if %failure;
+        $ret_status = FAILURE if %failure;
     }
-    else { $Ret_status = NO_ACTION }
+    else { $ret_status = NO_ACTION }
 
-    return $Ret_status;
+    return $ret_status;
 }
 
 sub _tie_var {
@@ -209,7 +209,7 @@ sub _tie_var {
                                length      =>       'length',
                                case        =>         'case',
                  },
-    );
+    );			    
 
     # hash ref
     if (ref $_[0]) {
@@ -255,8 +255,8 @@ sub _sanity_input {
     );
 
     my $err_input;
-    {   no warnings;
-
+    {    
+        no warnings;
         # generic opts
         unless ($o{mode} eq 'num' || $o{mode} eq 'char') {
             $err_input = $err_msg{mode}; last;
@@ -306,36 +306,27 @@ sub _sanity_input {
 
 sub _gather_files {
     if ($Traverse) {
-        _traverse(\@Dirs, \@Files);
+        _traverse(\@dirs, \@files);
     }
     else {
-        _dir_read($o{source}, \@Files);
-        @Files = grep !-d File::Spec->catfile($o{source}, $_), @Files;
+        _dir_read($o{source}, \@files);
+        @files = grep !-d File::Spec->catfile($o{source}, $_), @files;
     }
 
-    $track{source}{files} = @Files;
+    $track{source}{files} = @files;
 }
 
 sub _sort_files {
-    my (%F_names, @tmp);
-    # preserve case-sensitive filenames.
-    foreach (@Files) {
-        $F_names{lc $_} = $_;
-    }
-    @tmp = map lc, @Files; @Files = ();
-	
     my $cmp = 
       $Traverse 
         ? $o{f_sort} eq '+'
-          ? 'basename($a) cmp basename($b)'
-	  : 'basename($b) cmp basename($a)'
+          ? 'lc(basename($a)) cmp lc(basename($b))'
+	  : 'lc(basename($b)) cmp lc(basename($a))'
 	: $o{f_sort} eq '+'
-	  ? '$a cmp $b'
-	  : '$b cmp $a';
+	  ? 'lc($a) cmp lc($b)'
+	  : 'lc($b) cmp lc($a)';
 
-    foreach (sort { eval $cmp } @tmp) {
-        push @Files, $F_names{$_};
-    }
+    @files = sort { eval $cmp } @files;
 }
 
 sub _suffix {
@@ -351,7 +342,7 @@ sub _suffix_num_contin {
     _dir_read($o{target}, \@dirs);
     @dirs = grep -d File::Spec->catfile($o{target}, $_), @dirs;
 
-    $Suffix = 0;
+    $suffix = 0;
     my $sep = quotemeta $o{sep};
     foreach (@dirs) {
         # extract exist. identifier
@@ -359,29 +350,29 @@ sub _suffix_num_contin {
         ($_, $suff_cmp) = /(.+?)$sep(.*)/;
         # increase suffix to highest number
         if ($o{ident} eq $_ && $suff_cmp =~ /[0-9]/o) {
-            $Suffix = $suff_cmp if $suff_cmp > $Suffix;
+            $suffix = $suff_cmp if $suff_cmp > $suffix;
         }
     }
 }
 
 sub _suffix_num_sum_up {
-    $Suffix++;
-    if (length $Suffix < $o{length}) {
-        $Suffix = sprintf "%0.$o{length}".'d', $Suffix;
+    $suffix++;
+    if (length $suffix < $o{length}) {
+        $suffix = sprintf "%0.$o{length}".'d', $suffix;
     }
 }
 
 sub _suffix_char {
-    foreach my $file (@Files) {
+    foreach my $file (@files) {
         $_ = $Traverse ? basename($file) : $file;
         s/\s//g if /\s/; # whitespaces
         ($_) = /^(.{$o{length}})/;
         if ($_ =~ /\w/) {
             $_ = $o{case} eq 'lower' ? lc : uc;
         }
-        push @{$F_names_char{$_}}, $file;
+        push @{$f_names_char{$_}}, $file;
     }
-    undef @Files;
+    undef @files;
 }
 
 sub _move {
@@ -392,21 +383,21 @@ sub _move {
 }
 
 sub _move_num {
-    for (; @Files; $Suffix++) {
-       _mkpath(\$Suffix);
+    for (; @files; $suffix++) {
+       _mkpath(\$suffix);
 
-        for (my $i = 0; $i < $o{f_limit} && @Files; $i++) {
-            my $file = shift @Files;
+        for (my $i = 0; $i < $o{f_limit} && @files; $i++) {
+            my $file = shift @files;
             _cp_unlink(\$file);
         }
     }
 }
 
 sub _move_char {
-    foreach (sort keys %F_names_char) {
+    foreach (sort keys %f_names_char) {
         _mkpath(\$_);
 
-        while (my $file = shift @{$F_names_char{$_}}) {
+        while (my $file = shift @{$f_names_char{$_}}) {
             _cp_unlink(\$file);
         }
     }
@@ -424,11 +415,11 @@ sub _dir_read {
 sub _mkpath {
     my $suffix = $_[0];
 
-    $Path = File::Spec->catfile($o{target}, "$o{ident}$o{sep}$$suffix");
+    $path = File::Spec->catfile($o{target}, "$o{ident}$o{sep}$$suffix");
 
-    return if -e $Path;
-    mkpath $Path, $o{verbose}
-      or croak qq~Dir $Path could not be created: $!~;
+    return if -e $path;
+    mkpath $path, $o{verbose}
+      or croak qq~Dir $path could not be created: $!~;
 
     $track{target}{dirs}++;
 }
@@ -438,10 +429,10 @@ sub _cp_unlink {
 
     my $target_path;
     if ($Traverse) {
-        $target_path = File::Spec->catfile($Path, basename($$file));
+        $target_path = File::Spec->catfile($path, basename($$file));
     }
     else {
-        $target_path = File::Spec->catfile($Path, $$file);
+        $target_path = File::Spec->catfile($path, $$file);
         $$file = File::Spec->catfile($o{source}, $$file);
     }
 
@@ -470,7 +461,7 @@ sub _exists_and_not_override {
     my $path = $_[0];
 
     if (-e $$path && !$o{override}) {
-        $Ret_status = EXISTS;
+        $ret_status = EXISTS;
         return 1;
     }
 
@@ -503,7 +494,7 @@ sub _traverse {
 
 sub _traversed_rmdir {
     if ($Traverse_rmdir && $Traverse_unlink) {
-        foreach (@Dirs) { 
+        foreach (@dirs) { 
 	    rmtree($_, 1, 1);
 	}
     }
