@@ -1,6 +1,14 @@
 Revision history for Perl extension Dir::Split.
 
-0.37 2004/01/0x
+0.38 2003/01/04
+ - debug data upon existing files / 
+   copy & unlink failures available.
+ - the script 'bin/split.pl' evaluates the return
+   codes and outputs results accordingly.
+ - warning messages entirely removed.
+ - override interface option simplified. 
+
+0.37 2004/01/03
  - split() returns run and error codes.
  - source files and target dirs/files amounts
    are counted.

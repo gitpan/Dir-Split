@@ -11,6 +11,13 @@ To install this module type the following:
    make
    make test
    make install
+   
+SCRIPTS
+
+bin/split.pl
+
+Interface to Dir::Split that contains predefined options
+and evaluates return codes & debug data.
 
 LICENSE
 

@@ -12,70 +12,112 @@ use warnings;
 #
 
 
-#%Dir::Split::warn = (  dir   =>    "exists (d)\t",
-#                       file  =>    "exists (f)\t",
-#);
+my %num_options = (  mode    =>    'num',
 
-my %num_behavior = (  mode    =>    'num',
-
-                      options => {  verbose     =>           1,
-                                    warn        =>       'all',
-                                    override    =>      'none',
-                      },
-                      sub_dir => {  identifier  =>       'sub',
-                                    file_limit  =>           2,
-                                    file_sort   =>         '+',
-                      },
-                      suffix  => {  separator   =>         '-',
-                                    continue    =>         'y',
-                                    length      =>           5,
-                      },
+                     options => {  verbose     =>           1,
+                                   override    =>           0,
+                     },
+                     sub_dir => {  identifier  =>       'sub',
+                                   file_limit  =>           2,
+                                   file_sort   =>         '+',
+                     },
+                     suffix  => {  separator   =>         '-',
+                                   continue    =>           1,
+                                   length      =>           5,
+                     },
 );
 
-my %char_behavior = (  mode    =>    'char',
+my %char_options = (  mode    =>    'char',
 
-                       options => {  verbose     =>           1,
-                                     warn        =>       'all',
-                                     override    =>      'none',
-                       },
-                       sub_dir => {  identifier  =>       'sub',
-                       },
-                       suffix  => {  separator   =>         '-',
-                                     case        =>     'lower',
-                       },
+                      options => {  verbose     =>           1,
+                                    override    =>           0,
+                      },
+                      sub_dir => {  identifier  =>       'sub',
+                      },
+                      suffix  => {  separator   =>         '-',
+                                    case        =>     'lower',
+                      },
 
 );
 
 
 # numeric object
 #
-my $dir = Dir::Split->new(\%num_behavior); 
+my $dir = Dir::Split->new(\%num_options);
 
 # characteristic object
 #
-#my $dir = Dir::Split->new(\%char_behavior);
+#my $dir = Dir::Split->new(\%char_options);
 
-$dir->{'source'} = '/tmp/source';
-$dir->{'target'} = '/tmp/target';
+$dir->{'source'} = '/source';
+$dir->{'target'} = '/target';
 
 # split, evaluate the return status and squeek accordingly.
 #
-#my $return = $dir->split;
+my $return = $dir->split;
 
-# action or failure
-#if ($return == 1 || $return == -1) {
-#    print <<"EOT";
-#
-#-------------------
-#Source - files: $Dir::Split::track{'source'}{'files'}
-#Target - files: $Dir::Split::track{'target'}{'files'}
-#Target - dirs : $Dir::Split::track{'target'}{'dirs'}
-#-------------------
-#EOT
-#} # no action
-#elsif ($return == 0) {
-#    print "None moved.\n";
-#} # no return code
-#else {
-#    print "Program abortion - no return code.\n";
-#}
+# action
+if ($return == 1) {
+    print <<"EOT";
+
+-------------------
+Source - files: $Dir::Split::track{'source'}{'files'}
+Target - files: $Dir::Split::track{'target'}{'files'}
+Target - dirs : $Dir::Split::track{'target'}{'dirs'}
+-------------------
+EOT
+}
+# no action
+elsif ($return == 0) {
+    print "None moved.\n";
+}
+# existing files
+elsif ($return == -1) {
+    print <<'EOT';
+--------------------------
+START: DEBUG DATA - EXISTS
+--------------------------
+EOT
+    foreach (@Dir::Split::exists) {
+        print "file:\t$_\n";
+    }
+    print <<"EOT";
+------------------------
+END: DEBUG DATA - EXISTS
+------------------------
+
+-------------------
+Source - files: $Dir::Split::track{'source'}{'files'}
+Target - files: $Dir::Split::track{'target'}{'files'}
+Target - dirs : $Dir::Split::track{'target'}{'dirs'}
+-------------------
+EOT
+}
+# copy or unlink failure
+elsif ($return == -2) {
+    print <<'EOT';
+---------------------------
+START: DEBUG DATA - FAILURE
+---------------------------
+EOT
+    foreach (@{$Dir::Split::failure{'copy'}}) {
+        print "copy failed:\t$_\n";
+    }
+    foreach (@{$Dir::Split::failure{'unlink'}}) {
+        print "unlink failed:\t$_\n";
+    }
+    print <<"EOT";
+-------------------------
+END: DEBUG DATA - FAILURE
+-------------------------
+
+-------------------
+Source - files: $Dir::Split::track{'source'}{'files'}
+Target - files: $Dir::Split::track{'target'}{'files'}
+Target - dirs : $Dir::Split::track{'target'}{'dirs'}
+-------------------
+EOT
+} # no return code
+else {
+    print "Program abortion - no return code.\n";
+}
