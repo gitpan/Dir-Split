@@ -1,7 +1,7 @@
 Dir::Split
 ==========
 
-Extension that splits the files of a directory to subdirectories.
+Extension that splits files of a directory to subdirectories.
 
 INSTALLATION
 

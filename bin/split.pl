@@ -12,25 +12,23 @@ use warnings;
 #
 
 
-#%Dir::Split::warn = (  dir  =>    "exists (d)\t",
-#                       file =>    "exists (f)\t",
+#%Dir::Split::warn = (  dir   =>    "exists (d)\t",
+#                       file  =>    "exists (f)\t",
 #);
 
 my %num_behavior = (  mode    =>    'num',
 
-                      options => {  verbose        =>           1,
-                                    warn           =>       'all',
-                                    override       =>      'none',
+                      options => {  verbose     =>           1,
+                                    warn        =>       'all',
+                                    override    =>      'none',
                       },
-
-                      sub_dir => {  identifier     =>      'test',
-                                    file_limit     =>           2,
-                                    file_sort      =>         '+',
+                      sub_dir => {  identifier  =>       'sub',
+                                    file_limit  =>           2,
+                                    file_sort   =>         '+',
                       },
-
-                      suffix  => {  separator      =>         '-',
-                                    continue       =>         'y',
-                                    length         =>           5,
+                      suffix  => {  separator   =>         '-',
+                                    continue    =>         'y',
+                                    length      =>           5,
                       },
 );
 
@@ -40,33 +38,44 @@ my %char_behavior = (  mode    =>    'char',
                                      warn        =>       'all',
                                      override    =>      'none',
                        },
-
-                       sub_dir => {  identifier  =>      'test',
+                       sub_dir => {  identifier  =>       'sub',
                        },
-
                        suffix  => {  separator   =>         '-',
                                      case        =>     'lower',
                        },
 
 );
 
-my $source_dir = '/tmp/src';
-my $target_dir = '/tmp/target';
-
 
 # numeric object
 #
-#my $dir = Dir::Split->new(\%num_behavior);
+my $dir = Dir::Split->new(\%num_behavior); 
 
 # characteristic object
 #
 #my $dir = Dir::Split->new(\%char_behavior);
 
+$dir->{'source'} = '/tmp/source';
+$dir->{'target'} = '/tmp/target';
+
 # split, evaluate the return status and squeek accordingly.
 #
-#if (my $files_moved = $dir->split(\$source_dir, \$target_dir)) {
-#    print "$files_moved files moved.\n";
-#}
-#else {
+#my $return = $dir->split;
+
+# action or failure
+#if ($return == 1 || $return == -1) {
+#    print <<"EOT";
+#
+#-------------------
+#Source - files: $Dir::Split::track{'source'}{'files'}
+#Target - files: $Dir::Split::track{'target'}{'files'}
+#Target - dirs : $Dir::Split::track{'target'}{'dirs'}
+#-------------------
+#EOT
+#} # no action
+#elsif ($return == 0) {
 #    print "None moved.\n";
+#} # no return code
+#else {
+#    print "Program abortion - no return code.\n";
 #}

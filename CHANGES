@@ -1,5 +1,12 @@
 Revision history for Perl extension Dir::Split.
 
+0.37 2004/01/0x
+ - split() returns run and error codes.
+ - source files and target dirs/files amounts
+   are counted.
+ - _tie_var() runs a var-name lookup and ties
+   accordingly.
+
 0.36 2004/01/02
  - presets occupy their own sub.
  - simplified documentation.
