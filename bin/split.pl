@@ -62,9 +62,8 @@ $return = -255;
 # traversal mode and options.
 #
 #$Dir::Split::Traverse        = 1;
-#$Dir::Split::Traverse_depth  = 2;
-#$Dir::Split::Traverse_unlink = 0;
-#$Dir::Split::Traverse_rmdir  = 0;
+#$Dir::Split::Traverse_unlink = 1;
+#$Dir::Split::Traverse_rmdir  = 1;
 
 # split and evaluate the return status.
 #

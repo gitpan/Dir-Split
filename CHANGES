@@ -1,5 +1,8 @@
 Revision history for Perl extension Dir::Split.
 
+0.54 2004/01/13
+ - File::Find traverses directories.
+
 0.51 2004/01/10
  - bin/split.pl updated.
 

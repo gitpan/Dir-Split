@@ -1,9 +1,8 @@
-#
-# $Id: Split.pm,v 0.53 2004/01/13 16:48:12 sts Exp $
+# $Id: Split.pm,v 0.54 2004/01/13 19:39:16 sts Exp $
 
 package Dir::Split;
 
-our $VERSION = '0.53';
+our $VERSION = '0.54';
 
 use 5.6.1;
 use strict 'vars';
@@ -11,6 +10,7 @@ use warnings;
 
 use File::Basename;
 use File::Copy 'cp';
+use File::Find;
 use File::Path;
 use File::Spec;
 use SelfLoader;
@@ -130,7 +130,7 @@ hash reference or directly dumped to the constructor.
 sub new {
     my $pkg = shift;
 
-    my $class = ref ($pkg) || $pkg;
+    my $class = ref $pkg || $pkg;
 
     if (ref $_[0]) { return bless _tie_var($_[0]), $class }
     else { return bless _tie_var(@_), $class }
@@ -336,7 +336,7 @@ sub _sanity_input {
 #
 # _gather_files()
 #
-# Gathers files.
+# Gathers files from source.
 #
 
 sub _gather_files {
@@ -356,7 +356,7 @@ sub _gather_files {
 #
 # _sort_files()
 #
-# Sorts files.
+# Sorts files in num mode.
 #
 
 sub _sort_files {
@@ -421,7 +421,7 @@ sub _suffix_num_contin {
 #
 # _suffix_num_sum_up()
 #
-# Sums the numeric suffix with zeros up if required.
+# Sums the num suffix with zeros up if required.
 #
 
 sub _suffix_num_sum_up {
@@ -439,7 +439,7 @@ sub _suffix_num_sum_up {
 #
 # Evaluates filenames and stores them
 # in a hash associated with the leading
-# characters of their filenames.
+# chars of their filenames.
 #
 
 sub _suffix_char {
@@ -516,7 +516,7 @@ sub _move_char {
 #
 # _dir_read (\$dir, \@files)
 #
-# Reads files of a directory.
+# Reads files of a dir.
 #
 
 sub _dir_read {
@@ -625,70 +625,43 @@ __DATA__
 #
 # _traverse (\@dirs, \@files)
 #
-# Traversal machinery.
+# Traverses dirs and files.
 #
 
 sub _traverse {
-    my ($o, $dirs_ref, $files_ref) = @_;
+    no strict 'vars';
+    local ($o, $dirs_ref, $files_ref) = @_;
 
-    my ($count, @dirs, $eval, @eval, @files,
-        $limit, @stack);
-    $count = 0;
+    my %opts = (  wanted       =>    \&eval_files,
+	          postprocess  =>     \&eval_dirs,
+    );     
 
-    $o->_dir_read($o->{source}, \@eval);
-    @eval =
-      map { File::Spec->catfile($o->{source}, $_) }
-      @eval;
-
-    TRAVERSE:
-    while (@eval) {
-        if (-d $eval[0]) {
-            $eval = shift @eval;
-            push @dirs, $eval;
-        }
-        elsif (-f $eval[0]) {
-            my $file = shift @eval;
-            push @files, $file;
-            next;
-        }
-        else { croak 'Traversing failed: unknown type' }
-
-        my @items;
-        $o->_dir_read($eval, \@items);
-
-        foreach (@items) {
-            my $item = File::Spec->catfile($eval, $_);
-            if (-d $item) { push @stack, $item }
-            else { push @files, $item }
-        }
-
-        unless (@eval) {
-            if (++$count == $Traverse_depth) {
-                last TRAVERSE;
-            }
-            @eval = @stack;
-            undef @stack;
+    finddepth(\%opts, $o->{source});
+    
+    sub eval_files {
+        if (-f $File::Find::name) {
+            push @$files_ref, $File::Find::name;
         }
     }
 
-    @$dirs_ref  = @dirs;
-    @$files_ref = @files;
+    sub eval_dirs {
+        push @$dirs_ref, $File::Find::dir 
+	  if $File::Find::dir ne $o->{source};
+    }    
 }
 
 #
 # _traversed_rm_dir()
 #
-# Removes traversed directories.
+# Removes traversed dirs.
 #
 
 sub _traversed_rm_dir {
-    if ($Traverse_rmdir) {
-        if (!$Traverse_depth
-          && $Traverse_unlink) {
-            foreach (@Dirs) {
-                rmtree($_, 1, 1);
-            }
-        }
+    if ($Traverse_rmdir 
+      && $Traverse_unlink) {
+        foreach (@Dirs) { 
+	    rmtree($_, 1, 1);
+	}
     }
 }
 
@@ -949,16 +922,11 @@ Traversal processing of files within the source directory may not be activated b
 an argument to the object constructor, it requires the following variable to be set to true:
 
  # traversal mode
- $Dir::Split::Traverse        = 1;
+ $Dir::Split::Traverse = 1;
 
-By default no depth limit e.g. all underlying directories / files will be evaluated.
+No depth limit e.g. all underlying directories / files will be evaluated.
 
 B<options>
-
- # traversing depth
- $Dir::Split::Traverse_depth  = 3;
-
-The traversal depth equals the directory depth that will be entered.
 
  # unlink files in source
  $Dir::Split::Traverse_unlink = 1;
@@ -966,11 +934,10 @@ The traversal depth equals the directory depth that will be entered.
 Unlinks files after they have been moved to their new locations.
 
  # remove directories in source
- $Dir::Split::Traverse_rmdir  = 1;
+ $Dir::Split::Traverse_rmdir = 1;
 
 Removes the directories themselves after the files have been moved. In order to take effect,
-this option requires the C<$Dir::Split::Traverse_unlink> to be set. Directories will not be
-removed if a traversing depth has been set.
+this option requires the C<$Dir::Split::Traverse_unlink> to be set.
 
 It is B<not> recommended to turn on the latter options C<$Dir::Split::Traverse_unlink> and
 C<$Dir::Split::Traverse_rmdir>, unless you're aware of the consequences they imply.
@@ -979,37 +946,37 @@ C<$Dir::Split::Traverse_rmdir>, unless you're aware of the consequences they imp
 
 Assuming F</source> contains 5 files:
 
- +- _12.tmp
- +- abc.tmp
- +- def.tmp
- +- ghi.tmp
- +- jkl.tmp
+ +- _123
+ +- abcd
+ +- efgh
+ +- hijk
+ +- lmno
 
 After splitting the directory tree in F</target> will look as following:
 
 B<numeric splitting>
 
  +- system-00001
- +-- _12.tmp
- +-- abc.tmp
+ +-- _123
+ +-- abcd
  +- system-00002
- +-- def.tmp
- +-- ghi.tmp
+ +-- efgh
+ +-- ijkl
  +- system-00003
- +-- jkl.tmp
+ +-- mnop
 
 B<characteristic splitting>
 
  +- system-_
- +-- _12.tmp
+ +-- _123
  +- system-a
- +-- abc.tmp
- +- system-d
- +-- def.tmp
- +- system-g
- +-- ghi.tmp
- +- system-j
- +-- jkl.tmp
+ +-- abcd
+ +- system-e
+ +-- efgh
+ +- system-i
+ +-- ijkl
+ +- system-m
+ +-- mnop
 
 =head1 FAQ
 
@@ -1017,7 +984,7 @@ B<characteristic splitting>
 
 =item B<Has the functionality of C<Dir::Split> been tested?>
 
-Yes. I may not have covered all edging cases,
+Yes. I may not have covered all permuting cases,
 but it should behave I<mostly> sane, if certain options
 such as numbering continuation are enabled and others,
 like overriding, are disabled.
@@ -1041,7 +1008,7 @@ should be well grounded.
 
 =head1 DEPENDENCIES
 
-C<Perl 5.6.1>; C<File::Basename>, C<File::Copy>, C<File::Path>, C<File::Spec>.
+C<Perl 5.6.1>; L<File::Basename>, L<File::Copy>, L<File::Find>, L<File::Path>, L<File::Spec>.
 
 =head1 SEE ALSO
 
