@@ -1,4 +1,4 @@
-# $Id: Split.pm,v 0.64 2004/01/19 09:58:57 sts Exp $
+# $Id: Split.pm,v 0.65 2004/01/19 09:58:57 sts Exp $
 
 package Dir::Split;
 
@@ -7,7 +7,7 @@ use base qw(Exporter);
 use strict 'vars';
 use warnings;
 
-our $VERSION = '0.64';
+our $VERSION = '0.65';
 
 our @EXPORT_OK = qw(split_dir);
 
@@ -232,12 +232,7 @@ sub _suffix_char {
     undef @files;
 }
 
-sub _move {
-    $track{target}{dirs} = 0;
-    $track{target}{files} = 0;
-
-    &{"_move_$o{mode}"}();
-}
+sub _move { &{"_move_$o{mode}"}() }
 
 sub _move_num {
     for (; @files; $suffix++) {
@@ -265,25 +260,25 @@ sub _read_dir {
 
     local *D;
     opendir D, $dir
-      or croak qq~couldn't open dir $dir for read-access: $!~;
+      or croak qq~Couldn't open dir $dir for read-access: $!~;
     @$items = readdir D; splice @$items, 0, 2;
-    closedir D or croak qq~couldn't close dir $dir: $!~;
+    closedir D or croak qq~Couldn't close dir $dir: $!~;
 }
 
 sub _mkpath {
-    my $suffix = $_[0];
+    my $suffix = shift;
 
     $path = File::Spec->catfile($o{target}, "$o{ident}$o{sep}$$suffix");
 
     return if -e $path;
     mkpath $path, $o{verbose}
-      or croak qq~dir $path could not be created: $!~;
+      or croak qq~Dir $path could not be created: $!~;
 
     $track{target}{dirs}++;
 }
 
 sub _cp_unlink {
-    my $file = $_[0];
+    my $file = shift;
 
     my $target_path;
     if ($Traverse) {
@@ -316,7 +311,7 @@ sub _cp_unlink {
 }
 
 sub _exists_and_not_override {
-    my $path = $_[0];
+    my $path = shift;
 
     if (-e $$path && !$o{override}) {
         $ret_state = EXISTS;
@@ -353,7 +348,7 @@ sub _traverse {
 sub _traversed_rmdir {
     if ($Traverse_rmdir && $Traverse_unlink) {
         for (@dirs) { 
-	    rmtree $_,1,1;
+	    rmtree $_, 1, 1;
 	}
     }
 }
