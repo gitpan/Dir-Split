@@ -1,5 +1,4 @@
 use ExtUtils::MakeMaker;
-
 WriteMakefile(
     DISTNAME     => 'Dir-Split',
     NAME         => 'Dir::Split',

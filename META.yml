@@ -10,5 +10,5 @@ requires:
     File::Spec:     0
 distribution_type: module
 license: perl
-dist_abstract: split files of a directory to subdirectories.
+dist_abstract: Split files of a directory to subdirectories
 dist_author: Steven Schubiger

@@ -11,8 +11,7 @@ use warnings;
 
 use Dir::Split qw(split_dir);
 
-our ($return, %num_options, %char_options, %form, %form_o);
-
+our($return, %num_options, %char_options, %form, %form_o);
 $return = -255;
 
 
@@ -75,7 +74,7 @@ elsif ($return == -1) {
     local %form_o;
 
     $form_o{header} = 'EXISTS';
-    $form_o{ul} = '-' x length $form_o{header};
+    $form_o{ul} = '-' x length($form_o{header});
      
     formwrite('start_debug');
 
@@ -92,7 +91,7 @@ elsif ($return == -2) {
 
     if (@Dir::Split::exists) {
         $form_o{header} = 'EXISTS';
-        $form_o{ul} = '-' x length $form_o{header};
+        $form_o{ul} = '-' x length($form_o{header});
 	
         formwrite('start_debug');
 
@@ -104,7 +103,7 @@ elsif ($return == -2) {
     }
     
     $form_o{header} = 'FAILURE';
-    $form_o{ul} = '-' x length $form_o{header};
+    $form_o{ul} = '-' x length($form_o{header});
     formwrite('start_debug');
     
     for (@{$Dir::Split::failure{copy}}) {
@@ -127,7 +126,7 @@ sub formwrite {
     
     no warnings 'redefine';
     eval $form{$ident};
-    if ($@) { require Carp; Carp::croak $@; }
+    die $@ if $@;
     write;
 }
 
