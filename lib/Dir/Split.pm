@@ -1,12 +1,12 @@
-# $Id: Split.pm,v 0.54 2004/01/13 19:39:16 sts Exp $
+# $Id: Split.pm,v 0.55 2004/01/13 19:39:16 sts Exp $
 
 package Dir::Split;
 
-our $VERSION = '0.54';
-
-use 5.6.1;
+use 5.006;
 use strict 'vars';
 use warnings;
+
+our $VERSION = '0.55';
 
 use File::Basename;
 use File::Copy 'cp';
@@ -21,7 +21,6 @@ our (# external data
         %track,
 
         $Traverse,
-        $Traverse_depth,
         $Traverse_unlink,
         $Traverse_rmdir,
 
@@ -619,7 +618,6 @@ sub _clean_up {
 }
 
 1;
-
 __DATA__
 
 #
@@ -632,19 +630,19 @@ sub _traverse {
     no strict 'vars';
     local ($o, $dirs_ref, $files_ref) = @_;
 
-    my %opts = (  wanted       =>    \&eval_files,
-	          postprocess  =>     \&eval_dirs,
-    );     
+    my %opts = (  wanted       =>    \&_eval_files,
+	          postprocess  =>     \&_eval_dirs,
+    );
 
     finddepth(\%opts, $o->{source});
     
-    sub eval_files {
+    sub _eval_files {
         if (-f $File::Find::name) {
             push @$files_ref, $File::Find::name;
         }
     }
 
-    sub eval_dirs {
+    sub _eval_dirs {
         push @$dirs_ref, $File::Find::dir 
 	  if $File::Find::dir ne $o->{source};
     }    
@@ -936,7 +934,7 @@ Unlinks files after they have been moved to their new locations.
  # remove directories in source
  $Dir::Split::Traverse_rmdir = 1;
 
-Removes the directories themselves after the files have been moved. In order to take effect,
+Removes the directories after the files have been moved. In order to take effect,
 this option requires the C<$Dir::Split::Traverse_unlink> to be set.
 
 It is B<not> recommended to turn on the latter options C<$Dir::Split::Traverse_unlink> and
@@ -949,8 +947,8 @@ Assuming F</source> contains 5 files:
  +- _123
  +- abcd
  +- efgh
- +- hijk
- +- lmno
+ +- ijkl
+ +- mnop
 
 After splitting the directory tree in F</target> will look as following:
 
@@ -1008,7 +1006,7 @@ should be well grounded.
 
 =head1 DEPENDENCIES
 
-C<Perl 5.6.1>; L<File::Basename>, L<File::Copy>, L<File::Find>, L<File::Path>, L<File::Spec>.
+L<File::Basename>, L<File::Copy>, L<File::Find>, L<File::Path>, L<File::Spec>.
 
 =head1 SEE ALSO
 
@@ -1016,7 +1014,8 @@ perl(1)
 
 =head1 LICENSE
 
-This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself.
+This program is free software; 
+you may redistribute it and/or modify it under the same terms as Perl itself.
 
 =head1 AUTHOR
 
