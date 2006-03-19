@@ -1,26 +1,28 @@
 package Dir::Split;
 
-$VERSION = '0.76';
-@EXPORT = qw(
-    $NOACTION
-    $ACTION
-    $EXISTS
-    $FAILURE
-    $ADJUST
-);
-
-use strict 'vars';
+use 5.005;
+use strict;
+use warnings;
 use base qw(Exporter);
 
-use Carp 'croak';
-use File::Basename;
-use File::Copy;
+use Carp ();
+use File::Basename ();
+use File::Copy ();
 use File::Find ();
-use File::Path;
-use File::Spec;
+use File::Path ();
+use File::Spec ();
 use SelfLoader;
 
-our ($UNLINK,                  # external options
+our ($VERSION,
+     @EXPORT,
+
+     $NOACTION,                # return values
+     $ACTION,
+     $EXISTS,
+     $FAILURE,
+     $ADJUST,
+
+     $UNLINK,                  # external options
      $TRAVERSE,                
      $TRAVERSE_UNLINK,    
      $TRAVERSE_RMDIR,
@@ -29,12 +31,22 @@ our ($UNLINK,                  # external options
      @exists,                  # external data
      %failure,
      %track);
+     
+$VERSION = '0.77';
 
-our $NOACTION  =    0;
-our $ACTION    =    1; 
-our $EXISTS    =   -1;
-our $FAILURE   =   -2;
-our $ADJUST    = -255;
+@EXPORT = qw(
+    $NOACTION
+    $ACTION
+    $EXISTS
+    $FAILURE
+    $ADJUST
+);
+     
+$NOACTION =    0;
+$ACTION   =    1; 
+$EXISTS   =   -1;
+$FAILURE  =   -2;
+$ADJUST   = -255;
 
 sub new {
     my ($self, @opt) = @_;  
@@ -49,30 +61,23 @@ sub new {
 sub split_dir {
     my ($self) = @_;
 
-    $self->_sanity_input();
-    $self->_gather_files();
+    $self->_sanity_input;
+    $self->_gather_files;
     
     my $RetVal = $NOACTION;
 
     if ($self->{files}) {
         $RetVal = $ACTION;
         
-        $self->_sort_files() if ($self->{OPT}{mode} eq 'num');
-        $self->_suffix();
-        $self->_move();
-	if ($TRAVERSE) {
-	    if (@exists) {
-	        croak 'Could not rmdir traversed dirs, since existing files could not be overwritten';
-	    }
-	    if (%failure) {
-	        croak 'Could not rmdir traversed dirs, since a failure occured';
-	    }
-	    
-	    $self->_traversed_rmdir(); 
-	}
+        $self->_sort_files if $self->{OPT}{mode} eq 'num';
+        $self->_suffix;
+        $self->_move;
+	
+	$self->_traversed_rmdir 
+	  if $TRAVERSE && $TRAVERSE_RMDIR && $TRAVERSE_UNLINK;
 
-        $RetVal = $EXISTS    if @exists;
-        $RetVal = $FAILURE   if %failure;
+        $RetVal = $EXISTS  if @exists;
+        $RetVal = $FAILURE if %failure;
     }
     
     return $RetVal;
@@ -82,8 +87,8 @@ sub _sanity_input {
     my ($self) = @_;
     
     if ($UNLINK && ($TRAVERSE || $TRAVERSE_UNLINK || 
-      $TRAVERSE_RMDIR || $TRAVERSE_RMDIR_SOURCE)) {
-        croak '$UNLINK and $TRAVERSE_* may not be combined';
+        $TRAVERSE_RMDIR || $TRAVERSE_RMDIR_SOURCE)) {
+        Carp::croak '$UNLINK and $TRAVERSE_* may not be combined';
     }
      
     my %generic = (
@@ -126,7 +131,7 @@ sub _validate_input {
 	my $match = eval "sub { $condition }" 
 	  or die "Couldn't compile $condition: $@";
 	       
-        croak('Option ', $arg, ' not defined or invalid') 
+        Carp::croak('Option ', $arg, ' not defined or invalid') 
 	  unless &$match;
     }
 }    
@@ -136,8 +141,7 @@ sub _gather_files {
     
     if ($TRAVERSE) {
         $self->_traverse(\@{$self->{dirs}}, \@{$self->{files}});
-    }
-    else {
+    } else {
         $self->_read_dir(\@{$self->{files}}, $self->{OPT}{source});
 	
 	# Leave directories behind as we are in ``flat", non-traversal mode. 
@@ -152,8 +156,8 @@ sub _sort_files {
     my $cmp = 
       $TRAVERSE 
         ? $self->{OPT}{file_sort} eq '+' 
-	  ? 'lc basename($a) cmp lc basename($b)'
-	  : 'lc basename($b) cmp lc basename($a)'
+	  ? 'lc File::Basename::basename($a) cmp lc File::Basename::basename($b)'
+	  : 'lc File::Basename::basename($b) cmp lc File::Basename::basename($a)'
 	: $self->{OPT}{file_sort} eq '+'
 	  ? 'lc $a cmp lc $b'
 	  : 'lc $b cmp lc $a';
@@ -165,11 +169,10 @@ sub _suffix {
     my ($self) = @_;
     
     if ($self->{OPT}{mode} eq 'num') {
-        $self->_suffix_num_contin()    if $self->{continue};
-        $self->_suffix_num_sum_up();
-    } 
-    else { 
-        $self->_suffix_char();
+        $self->_suffix_num_contin if $self->{continue};
+        $self->_suffix_num_sum_up;
+    } else { 
+        $self->_suffix_char;
     }
 }
 
@@ -185,7 +188,7 @@ sub _suffix_num_contin {
     $self->{suffix} = 0;
       
     # Search for the highest numerical suffix of given identifier.
-    for my $dir (@dirs) {
+    foreach my $dir (@dirs) {
         my ($ident_cmp, $suff_cmp) = $dir =~ /(.+) \Q$self->{OPT}{separator}\E (.*)/ox;    
 
         if ($self->{OPT}{identifier} eq $ident_cmp && $suff_cmp =~ /[0-9]/o) {
@@ -211,7 +214,7 @@ sub _suffix_char {
     
     while (my $file = shift @{$self->{files}}) {
         my $suffix = $TRAVERSE 
-	  ? basename($file) 
+	  ? File::Basename::basename($file) 
 	  : $file; 
 
 	$suffix =~ s/\s//g;
@@ -242,12 +245,13 @@ sub _move_num {
     my ($self) = @_;
     
     for (; @{$self->{files}}; $self->{suffix}++) {
-        $self->{target_path} = $self->_mkpath;
+        $self->{target_path}  = $self->_mkpath;
+	%{$self->{duplicate}} = ();
 	
         for (my $copied = 0; $copied < $self->{OPT}{file_limit} && @{$self->{files}}; $copied++) {
 	    $self->{file} = shift @{$self->{files}};
             $self->_copy_unlink;
-            
+	    $self->{duplicate}{File::Basename::basename($self->{file})}++;
         }
     }
 }
@@ -255,12 +259,14 @@ sub _move_num {
 sub _move_char {
     my ($self) = @_;
     
-    for my $suffix (sort keys %{$self->{file_suffix}}) {
-        $self->{suffix} = $suffix;
-        $self->{target_path} = $self->_mkpath;
+    foreach my $suffix (sort keys %{$self->{file_suffix}}) {
+        $self->{suffix}       = $suffix;
+        $self->{target_path}  = $self->_mkpath;
+	%{$self->{duplicate}} = ();
 
 	while ($self->{file} = shift @{$self->{file_suffix}{$suffix}}) {
             $self->_copy_unlink;
+	    $self->{duplicate}{File::Basename::basename($self->{file})}++;
         }
     }
 }
@@ -273,10 +279,10 @@ sub _mkpath {
     
     return $target_path if -e $target_path;
     
-    if (mkpath($target_path, $self->{OPT}{verbose})) {
+    if (File::Path::mkpath($target_path, $self->{OPT}{verbose})) {
         $track{target}{dirs}++;
     } else {
-        croak "Dir $target_path couldn't be created: $!";
+        Carp::croak "Dir $target_path couldn't be created: $!";
     }
       
     return $target_path;
@@ -287,12 +293,14 @@ sub _copy_unlink {
     
     if ($TRAVERSE) {
         $self->{source_file} = $self->{file};
-        $self->{target_file} = File::Spec->catfile($self->{target_path}, basename($self->{file}));
-    }
-    else {
+        $self->{target_file} = File::Spec->catfile($self->{target_path}, File::Basename::basename($self->{file}));
+    } else {
         $self->{source_file} = File::Spec->catfile($self->{OPT}{source}, $self->{file});
         $self->{target_file} = File::Spec->catfile($self->{target_path}, $self->{file});
     }
+    
+    $self->{target_file} .= "_$self->{duplicate}{File::Basename::basename($self->{file})}" 
+      if $self->{duplicate}{File::Basename::basename($self->{file})};
     
     if ($self->_copy) {
         $track{target}{files}++;
@@ -308,7 +316,7 @@ sub _copy {
 	return 0;
     }
     
-    if (!(copy $self->{source_file}, $self->{target_file})) {
+    if (!(File::Copy::copy $self->{source_file}, $self->{target_file})) {
         push @{$failure{copy}}, $self->{target_file};
         return 0;    
     } else { 
@@ -321,8 +329,7 @@ sub _unlink {
 
     if (!$UNLINK && !$TRAVERSE) {
         return;
-    }
-    elsif ($TRAVERSE) {
+    } elsif ($TRAVERSE) {
         return unless $TRAVERSE_UNLINK;
     }            
     unless (unlink $self->{source_file}) {
@@ -340,16 +347,14 @@ sub _exists_and_not_override {
 sub _read_dir {
     my ($self, $items, $dir) = @_;
     
-    local *DIR;
-    
-    opendir(DIR, $dir)
-      or croak "Couldn't open dir $dir: $!";
+    opendir(my $dir_fh, $dir)
+      or Carp::croak "Couldn't open dir $dir: $!";
       
-    @$items = readdir(DIR); 
+    @$items = readdir($dir_fh); 
     splice(@$items, 0, 2);
     
-    closedir(DIR) 
-      or croak "Couldn't close dir $dir: $!";
+    closedir($dir_fh) 
+      or Carp::croak "Couldn't close dir $dir: $!";
 }
 
 1;
@@ -367,17 +372,13 @@ sub _traverse {
 } 
 
 sub _eval_files {
-    my ($self) = @_;
-    
-    push @$files, $File::Find::name
-      if -f $File::Find::name;
+    my ($self) = @_;    
+    push @$files, $File::Find::name if -f $File::Find::name;
 }
 
 sub _eval_dirs {
-    my ($self) = @_;
-    
+    my ($self) = @_;    
     push @$dirs, $File::Find::dir;
-      #if $File::Find::dir ne $self->{OPT}{source};
 } 
 
 sub _traversed_rmdir {
@@ -385,8 +386,8 @@ sub _traversed_rmdir {
     
     if ($TRAVERSE_RMDIR && $TRAVERSE_UNLINK) {
         for my $dir (@{$self->{dirs}}) {
-	    next if ($dir eq $self->{OPT}{source} && !$TRAVERSE_RMDIR_SOURCE);
-	    rmtree($dir, 1, 1);    
+	    next if $dir eq $self->{OPT}{source} && !$TRAVERSE_RMDIR_SOURCE;
+	    File::Path::rmtree($dir, 1, 1);    
         }
     }
 }
@@ -791,6 +792,13 @@ L<File::Basename>, L<File::Copy>, L<File::Find>, L<File::Path>, L<File::Spec>
 
 =head1 AUTHOR
 
-Steven Schubiger <steven@accognoscere.org>
+Steven Schubiger <schubiger@cpan.org>
+
+=head1 LICENSE
+
+This program is free software; you may redistribute it and/or 
+modify it under the same terms as Perl itself.
+
+See L<http://www.perl.com/perl/misc/Artistic.html>	    
 
 =cut

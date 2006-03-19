@@ -5,8 +5,8 @@ use warnings;
 
 use Dir::Split;
 
-our ($dir, %Form, %Form_opt);
-our $retval = $ADJUST;
+our ($dir, %Form, %Form_opt, $retval);
+$retval = $ADJUST;
 
 #
 # Modify following lines accordingly to whether 
@@ -74,7 +74,7 @@ my %char_options = (
 
 # no config
 if ($retval == $ADJUST) {
-    print __FILE__." requires adjustment\n";
+    print __FILE__, " requires adjustment\n";
 }
 # action
 elsif ($retval == $ACTION) { 
